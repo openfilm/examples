@@ -1,0 +1,527 @@
+<!doctype html>
+<html lang="zh">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=1920, height=1080">
+<title>S4 — what it can do, and what it makes</title>
+<link rel="stylesheet" href="lib/shared.css">
+<style>
+  /* S3 ends on OpenFilm's card; S4 opens out of its mark: the mark's playhead drops onto a row of clips and plays it,
+     its two clips become the row's first two. The row is the line, cut on its words: each clip one thing it does or one
+     film it makes, as long as it is said, and the picture above shows the clip under the playhead. The films'
+     filmstrips are their own frames (lib/s4/thumbs, lib/s4/prep.py). */
+  #bg { position: absolute; inset: 0; background: radial-gradient(90% 80% at 50% 40%, #16171b 0%, #0b0c0e 58%, #050506 100%); }
+  #viewer { position: absolute; left: 288px; top: 98px; width: 1344px; height: 756px; border-radius: 20px; overflow: hidden; background: #0c0d10;
+            box-shadow: 0 0 0 1.5px rgba(255,255,255,.08), 0 30px 90px rgba(0,0,0,.55); transform-origin: 50% 50%; }
+  .sc { position: absolute; inset: 0; overflow: hidden; visibility: hidden; }
+  .mg-small { position: absolute; font: 500 17px/1 'Geist Mono', monospace; letter-spacing: .14em; color: rgba(20,20,20,.72); white-space: nowrap; }
+  .fill { position: absolute; left: 0; top: 0; width: 100%; height: 100%; object-fit: cover; display: block; }
+  .glass { background: rgba(12,13,16,.64); backdrop-filter: blur(14px); box-shadow: inset 0 0 0 1.5px rgba(255,255,255,.13); }
+  .mono { font-family: 'Geist Mono', monospace; }
+  .chip { position: absolute; height: 52px; padding: 0 22px; border-radius: 14px; display: flex; align-items: center; gap: 12px; white-space: nowrap;
+          font: 600 25px/1 'Noto Sans SC', sans-serif; color: #f6f4f0; }
+  #name { left: 24px; top: 24px; z-index: 5; }
+  #name .ix { font: 500 21px/1 'Geist Mono', monospace; color: rgba(246,244,240,.5); }
+  .res { right: 24px; top: 24px; color: #f6f4f0; font-size: 23px; }
+
+  /* the timeline: one row of clips under the picture, the playhead a white line through it */
+  #row { position: absolute; inset: 0; -webkit-mask-image: linear-gradient(90deg, transparent 24px, #000 140px, #000 1780px, transparent 1896px); }
+  .clip { position: absolute; top: 968px; height: 84px; border-radius: 11px; overflow: hidden; background: #1a1b20; }
+  .strip { position: absolute; left: 0; top: 0; height: 84px; display: flex; filter: brightness(.55) saturate(.8); }
+  .strip > * { flex: none; width: 150px; height: 84px; object-fit: cover; display: block; box-shadow: inset -1px 0 0 rgba(0,0,0,.35); }
+  .clip .ring { position: absolute; inset: 0; border-radius: 11px; box-shadow: inset 0 0 0 1.5px rgba(255,255,255,.12); }
+  .clip .lab { position: absolute; left: 8px; top: 8px; height: 30px; padding: 0 11px 0 9px; border-radius: 8px; display: flex; align-items: center; gap: 6px; white-space: nowrap;
+               font: 600 17px/1 'Noto Sans SC', sans-serif; color: #fff; background: rgba(0,0,0,.55); backdrop-filter: blur(6px); }
+  .clip .h { position: absolute; top: 0; width: 10px; height: 84px; background: #f6f4f0; display: none; }
+  .clip .h::after { content: ''; position: absolute; left: 4px; top: 30px; width: 2px; height: 24px; border-radius: 1px; background: #111; }
+  .clip.on .strip, .clip.lit .strip { filter: none; }
+  .clip.on .ring { box-shadow: inset 0 0 0 3px #f6f4f0; }
+  .clip.on .h { display: block; }
+  /* the playhead: the brand's own, its head over the row and a thin stem through it */
+  #ph { position: absolute; left: 0; top: 0; width: 0; height: 0; }
+  #ph svg { position: absolute; left: -15px; top: 928px; filter: drop-shadow(0 2px 6px rgba(0,0,0,.5)); }
+  #ph i { position: absolute; left: -2px; top: 956px; width: 4px; height: 110px; border-radius: 2px; background: #f6f4f0; box-shadow: 0 0 0 1px rgba(11,12,14,.45), 0 0 12px rgba(246,244,240,.3); }
+  #black { position: absolute; inset: 0; background: #000; }
+  #card { position: absolute; left: 0; top: 0; width: 1920px; height: 1080px; transform-origin: 50% 40%; }
+  /* the card's mark, drawn over it where it is, to take apart: the playhead's head and stem, its two clips */
+  .mk { position: absolute; left: 0; top: 0; transform-origin: 0 0; }
+  .mk.ghost { pointer-events: none; }
+  .clip .glint { position: absolute; inset: 0; border-radius: 11px; pointer-events: none; opacity: 0; mix-blend-mode: screen;
+                 background: linear-gradient(100deg, transparent 30%, rgba(255,255,255,.55) 48%, rgba(255,255,255,.75) 50%, rgba(255,255,255,.55) 52%, transparent 70%) no-repeat; background-size: 260% 100%; }
+
+  /* 剪口播 */
+  .tr { position: absolute; left: 50%; bottom: 44px; transform: translateX(-50%); height: 80px; padding: 0 34px; border-radius: 20px; display: flex; align-items: center; white-space: nowrap;
+        font: 500 40px/1 'Noto Sans SC', sans-serif; color: #f6f4f0; }
+  .tr span { display: inline-block; overflow: hidden; vertical-align: bottom; white-space: nowrap; }
+  .tr .um { color: #ff7a6e; text-decoration: line-through; text-decoration-thickness: 3px; }
+  /* 挑素材 */
+  .search { position: absolute; left: 40px; top: 96px; height: 64px; width: 600px; border-radius: 32px; display: flex; align-items: center; gap: 14px; padding: 0 26px;
+            font: 500 30px/1 'Noto Sans SC', sans-serif; color: #f6f4f0; background: #1b1c21; box-shadow: inset 0 0 0 1.5px rgba(255,255,255,.1); }
+  .th { position: absolute; width: 298px; height: 168px; border-radius: 12px; overflow: hidden; background: #000; transform-origin: 0 0; }
+  .th img { width: 100%; height: 100%; object-fit: cover; display: block; }
+  .th .ok { position: absolute; inset: 0; border-radius: 12px; box-shadow: inset 0 0 0 5px #f6f4f0; opacity: 0; }
+  .th b { position: absolute; right: 10px; top: 10px; width: 40px; height: 40px; border-radius: 50%; background: #f6f4f0; color: #111; font: 700 24px/40px 'Geist', sans-serif; text-align: center; opacity: 0; }
+  .tray { position: absolute; left: 40px; top: 560px; width: 1264px; height: 164px; border-radius: 16px; background: rgba(255,255,255,.035); box-shadow: inset 0 0 0 1.5px rgba(255,255,255,.1); }
+  .tray b { position: absolute; left: 26px; top: 66px; font: 600 26px/1 'Noto Sans SC', sans-serif; color: rgba(246,244,240,.6); }
+  /* 加字幕 */
+  .subs { position: absolute; left: 0; right: 0; bottom: 64px; text-align: center; white-space: nowrap; }
+  .subs span { display: inline-block; font: 800 62px/1.2 'Noto Sans SC', sans-serif; color: #fff; padding: 0 4px; text-shadow: 0 3px 18px rgba(0,0,0,.75), 0 0 2px rgba(0,0,0,.9); }
+  /* 配音配乐: a night shot, the line it says lit as it is said, and the two lanes a timeline gives them */
+  #av-img { transform-origin: 62% 46%; }
+  #av-shade { position: absolute; inset: 0; background: linear-gradient(180deg, rgba(0,0,0,0) 40%, rgba(0,0,0,.66) 100%); }
+  #av-line { position: absolute; left: 0; right: 0; top: 488px; text-align: center; white-space: nowrap; font: 600 46px/1 'Noto Sans SC', sans-serif; letter-spacing: .04em;
+             color: rgba(255,255,255,.26); text-shadow: 0 2px 16px rgba(0,0,0,.6); }
+  #av-line span.on { color: #fff; }
+  #av-lanes { position: absolute; left: 50%; bottom: 46px; width: 780px; height: 108px; margin-left: -390px; }
+  .lane { position: absolute; left: 0; right: 0; height: 48px; border-radius: 12px; overflow: hidden; }
+  .lane .tag { position: absolute; left: 14px; top: 0; height: 48px; display: flex; align-items: center; gap: 8px; font: 600 19px/1 'Noto Sans SC', sans-serif; color: #f6f4f0; }
+  .lane svg { position: absolute; left: 112px; top: 0; }
+  .lane.vo { top: 0; background: rgba(240,166,135,.15); box-shadow: inset 0 0 0 1.5px rgba(240,166,135,.34); }
+  .lane.mu { top: 60px; background: rgba(142,170,255,.13); box-shadow: inset 0 0 0 1.5px rgba(142,170,255,.3); }
+  #av-ph { position: absolute; top: -7px; width: 2px; height: 122px; border-radius: 1px; background: #fff; box-shadow: 0 0 10px rgba(255,255,255,.8); }
+  /* the films */
+  .cell { position: absolute; border-radius: 12px; overflow: hidden; background: #000; }
+  .cell .tag { position: absolute; left: 14px; bottom: 12px; font: 600 23px/1 'Noto Sans SC', sans-serif; color: #fff; text-shadow: 0 2px 10px rgba(0,0,0,.85); }
+</style>
+</head>
+<body>
+<div id="bg"></div>
+<div id="viewer">
+  <!-- 剪口播 -->
+  <div class="sc" id="sc-cut">
+    <img class="fill" id="talk" src="assets/image/s4-talk.png">
+    <div class="tr glass" id="tr"></div>
+    <div class="chip res glass" id="cut-res"><span style="color:#ff7a6e">✂</span>删掉 3 处口误<span class="mono" style="font-size:20px;color:rgba(246,244,240,.55)">2:14 → 1:52</span></div>
+  </div>
+  <!-- 挑素材 -->
+  <div class="sc" id="sc-pick" style="background:#111215">
+    <div class="search"><svg width="30" height="30" viewBox="0 0 24 24" fill="none" stroke="#8b8f98" stroke-width="2.2" stroke-linecap="round"><circle cx="11" cy="11" r="7"/><path d="m20 20-3.5-3.5"/></svg><span id="q"></span></div>
+    <div class="chip res glass" id="pick-res"><span class="mono" style="font-size:22px">248</span>个素材里挑出<span class="mono" style="font-size:22px">3</span>个</div>
+    <div class="tray"><b id="tray-n">已选 0</b></div>
+    <div id="lib-grid"></div>
+  </div>
+  <!-- 加字幕: a film OpenFilm made, its captions word by word -->
+  <div class="sc" id="sc-subs">
+    <video class="fill" id="subs-v" src="assets/video/showcase-hd/video-editing.mp4" muted playsinline preload="auto"></video>
+    <div class="chip res glass"><span class="mono" style="font-size:16px;padding:4px 7px;border-radius:5px;background:#f6f4f0;color:#111">CC</span>听写，逐字对齐</div>
+  </div>
+  <!-- 配B-roll -->
+  <div class="sc" id="sc-broll">
+    <img class="fill" id="br-a" src="assets/image/s4-talk.png">
+    <img class="fill" id="br-b" src="assets/image/s4-lib-1.png">
+    <div class="chip res glass mono" id="br-tag" style="font-size:21px">B-roll · 海边日落</div>
+    <div class="glass" style="position:absolute;left:40px;right:40px;bottom:30px;height:124px;border-radius:16px">
+      <span class="mono" style="position:absolute;left:22px;top:24px;font-size:18px;color:rgba(246,244,240,.55)">V2</span>
+      <span class="mono" style="position:absolute;left:22px;top:80px;font-size:18px;color:rgba(246,244,240,.55)">V1</span>
+      <div id="br-clip" style="position:absolute;left:480px;top:14px;width:340px;height:42px;border-radius:9px;overflow:hidden;box-shadow:inset 0 0 0 2px #f6f4f0;background:url(assets/image/s4-lib-1.png) 0 50%/96px auto repeat-x"></div>
+      <div style="position:absolute;left:80px;right:22px;top:72px;height:36px;border-radius:9px;overflow:hidden;opacity:.85;background:url(assets/image/s4-talk.png) 0 30%/64px auto repeat-x;box-shadow:inset 0 0 0 1.5px rgba(255,255,255,.18)"></div>
+      <div id="br-ph" style="position:absolute;top:6px;width:3px;height:112px;background:#fff;box-shadow:0 0 12px rgba(255,255,255,.7)"></div>
+    </div>
+  </div>
+  <!-- 调色 -->
+  <div class="sc" id="sc-grade">
+    <img class="fill gr" src="assets/image/s4-grade.png" style="filter:saturate(.32) contrast(.7) brightness(1.12) sepia(.08)">
+    <img class="fill gr" id="graded" src="assets/image/s4-grade.png" style="filter:saturate(1.06) contrast(1.04)">
+    <div id="gline" style="position:absolute;top:0;bottom:0;width:3px;background:#fff;box-shadow:0 0 22px rgba(255,255,255,.85)"></div>
+    <div class="chip glass mono" id="g-a" style="bottom:28px;font-size:21px;color:#c9ccd2">S-LOG3 原片</div>
+    <div class="chip glass mono" id="g-b" style="bottom:28px;font-size:21px;color:#ffd7bd">调色后 · Rec.709</div>
+  </div>
+  <!-- 做MG动画: a motion poster in the Swiss manner, made here: paper, a hairline grid, a cobalt disc, an orange half
+       disc, a yellow pill, ink bars; MOTION rising letter by letter out of its line, its Chinese under it, small type at
+       the corners. Every piece vector, every move on one clock -->
+  <div class="sc" id="sc-mg" style="background:#efe9dd">
+    <svg id="mg" class="fill" viewBox="0 0 1344 756" style="object-fit:fill">
+      <g id="mg-grid" stroke="#141414" stroke-opacity=".14" stroke-width="1.2" fill="none"></g>
+      <circle id="mg-disc" cx="1066" cy="352" r="236" fill="#2f5bff"/>
+      <g id="mg-half"><path d="M20 756A230 230 0 0 1 480 756Z" fill="#ff4b1f"/></g>
+      <g id="mg-bars" fill="#141414"></g>
+      <g id="mg-pill"><rect x="0" y="0" width="332" height="92" rx="46" fill="#ffc93c"/><text x="166" y="58" text-anchor="middle" fill="#141414" style="font:700 30px 'Noto Sans SC',sans-serif;letter-spacing:.18em">新品发布</text></g>
+      <g id="mg-star" stroke="#fff" stroke-width="16" stroke-linecap="round"></g>
+      <g id="mg-reg" stroke="#141414" stroke-width="1.6"></g>
+    </svg>
+    <div id="mg-word" style="position:absolute;left:84px;top:120px;height:230px;overflow:hidden;display:flex;font:900 212px/1 'Geist',sans-serif;letter-spacing:-.045em;color:#141414;white-space:nowrap"></div>
+    <div id="mg-cn" style="position:absolute;left:94px;top:360px;font:900 64px/1 'Noto Sans SC',sans-serif;letter-spacing:.06em;color:#141414;white-space:nowrap">让画面动起来</div>
+    <div class="mg-small" id="mg-s1" style="left:560px;top:52px">01 — MOTION GRAPHICS</div>
+    <div class="mg-small" id="mg-s2" style="right:94px;top:52px;text-align:right">24 FPS · 4K</div>
+    <div class="mg-small" id="mg-s3" style="right:94px;bottom:46px;text-align:right">© OPENFILM 2026</div>
+  </div>
+  <!-- 配音配乐 -->
+  <div class="sc" id="sc-av">
+    <img class="fill" id="av-img" src="assets/image/window-city.png">
+    <div id="av-shade"></div>
+    <div id="av-line"></div>
+    <div id="av-lanes">
+      <div class="lane vo"><div class="tag"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#f0a687" stroke-width="2.2" stroke-linecap="round" style="position:static"><rect x="9" y="2" width="6" height="12" rx="3"/><path d="M5 11a7 7 0 0 0 14 0M12 18v4"/></svg>配音</div><svg id="av-vo" width="656" height="48" viewBox="0 0 656 48"></svg></div>
+      <div class="lane mu"><div class="tag"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#9bb8ff" stroke-width="2.2" stroke-linecap="round" style="position:static"><path d="M9 18V5l12-2v13"/><circle cx="6" cy="18" r="3"/><circle cx="18" cy="16" r="3"/></svg>配乐</div><svg id="av-mu" width="656" height="48" viewBox="0 0 656 48"></svg></div>
+      <div id="av-ph"></div>
+    </div>
+  </div>
+  <!-- 做的片子 -->
+  <div class="sc" id="sc-films" style="background:#0a0b0d"></div>
+  <div class="chip glass" id="name"><span class="ix"></span><span class="nm"></span></div>
+</div>
+<div id="row"><div id="clips"></div></div>
+<div id="ph"><svg width="30" height="30" viewBox="14 12 26 25"><path d="M17 12H37Q40 12 40 15V27Q40 29 38.5 30.5L31 37H23L15.5 30.5Q14 29 14 27V15Q14 12 17 12Z" fill="#f6f4f0"/></svg><i></i></div>
+<img id="card" src="assets/image/s3-endcard.png">
+<div id="mk-ghosts"></div><div class="mk" id="mk-b1"></div><div class="mk" id="mk-b2"></div><div class="mk" id="mk-stem"></div>
+<svg class="mk" id="mk-head" width="74" height="71" viewBox="14 12 26 25" overflow="visible"><path d="M17 12H37Q40 12 40 15V27Q40 29 38.5 30.5L31 37H23L15.5 30.5Q14 29 14 27V15Q14 12 17 12Z" fill="currentColor" stroke-width="7" paint-order="stroke" stroke-linejoin="round"/></svg>
+<div id="black"></div>
+<script type="module">
+import { clamp, lerp, prog, inout, out3, out5, spring, rnd, fontsReady } from './lib/ease.js';
+const $ = (s, r = document) => r.querySelector(s);
+const $$ = (s, r = document) => [...r.querySelectorAll(s)];
+const VO = 0.55;           /* the voice starts this far into the page (film.html: l4 at 16.67, this page at 16.12): a breath after S3's line */
+const VTT = 'assets/audio/vo/l4-v4.vtt';
+const DUR = 15.494;          /* a bar longer than the line needs: the score repeats one (film.html section1-score-4c) */
+/* what is said, in order: each item's first character is where its clip starts */
+const SAID = ['剪口播', '挑素材', '加字幕', '配B-roll', '调色', '做MG动画', '配音配乐', '产品片', '广告', '知识讲解', '绘本', '课件', 'MV', '它都能做'];
+let B = null, END = 0;     /* page seconds of each item, and where the voice ends */
+async function beats() {
+  const raw = await (await fetch(VTT)).text(); const chars = [];
+  const sec = (h, mi, s) => +h * 3600 + +mi * 60 + +s;
+  for (const cue of raw.split(/\n\n+/)) {
+    const m = cue.match(/(\d\d):(\d\d):(\d\d\.\d+) --> (\d\d):(\d\d):(\d\d\.\d+)\n([\s\S]+)/);
+    if (!m) continue;
+    let t = sec(m[1], m[2], m[3]); END = Math.max(END, sec(m[4], m[5], m[6]));
+    for (const part of m[7].split(/(<\d\d:\d\d:\d\d\.\d+>)/)) {
+      const tag = part.match(/<(\d\d):(\d\d):(\d\d\.\d+)>/);
+      if (tag) { t = sec(tag[1], tag[2], tag[3]); continue; }
+      for (const ch of part) if (/\S/.test(ch)) chars.push([ch, t]);
+    }
+  }
+  const text = chars.map((c) => c[0]).join(''); let from = 0; B = {};
+  for (const w of SAID) { const i = text.indexOf(w, from); if (i < 0) throw new Error(`not said: ${w}`); B[w] = chars[i][1] + VO; from = i + w.length; }
+  END += VO;
+}
+
+/* ── the clips: what each one is called, its icon, and its filmstrip's frames ── */
+const IC = {
+  cut: '<path d="M6 9a3 3 0 1 0 0-6 3 3 0 0 0 0 6Zm0 12a3 3 0 1 0 0-6 3 3 0 0 0 0 6ZM8.1 8.1 20 20M8.1 15.9 20 4"/>',
+  pick: '<circle cx="11" cy="11" r="7"/><path d="m20 20-3.5-3.5"/>',
+  subs: '<rect x="3" y="5" width="18" height="14" rx="2.5"/><path d="M7 12h4M13 12h4M7 15.5h7"/>',
+  grade: '<circle cx="12" cy="12" r="9"/><path d="M12 3a9 9 0 0 1 0 18Z" fill="currentColor"/>',
+  mg: '<path d="m12 3 2.6 5.6L20 9.3l-4 4 1 5.7-5-2.8-5 2.8 1-5.7-4-4 5.4-.7Z"/>',
+  broll: '<rect x="3" y="4" width="18" height="7" rx="1.5"/><rect x="7" y="13" width="14" height="7" rx="1.5"/>',
+  av: '<path d="M9 18V5l12-2v13"/><circle cx="6" cy="18" r="3"/><circle cx="18" cy="16" r="3"/>',
+  film: '<rect x="3" y="4" width="18" height="16" rx="2.5"/><path d="m10 9 5 3-5 3Z" fill="currentColor"/>',
+};
+const icon = (k) => `<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">${IC[k]}</svg>`;
+const img = (src, style = '') => `<img src="${src}" style="${style}">`;
+const SEG = { MV: 5.6, 课件: 0.9, 产品片: 2.4, 知识讲解: 1.45 };   /* where these play from: the MV's projector and its beam, the lesson's sheet turning 3D, the product film's site as it fills, the painting folding out into its room */
+const FILMS = [['产品片', 'product-film'], ['广告', 'commercial'], ['知识讲解', 'explainer'], ['绘本', 'picture-book'], ['课件', 'education'], ['MV', 'music-video']];
+const thumb = (f, k) => `lib/s4/thumbs/${f}-${k}.jpg`;
+const frames = {
+  cut: (k) => img('assets/image/s4-talk.png', `object-position:${46 + (k % 3) * 2}% 40%`),
+  pick: (k) => img(`assets/image/s4-lib-${(k % 8) + 1}.png`),
+  subs: (k) => img(`lib/s4/thumbs/video-editing-${k % 6}.jpg`),
+  grade: (k) => img('assets/image/s4-grade.png', k ? '' : 'filter:saturate(.32) contrast(.7) brightness(1.12)'),
+  mg: (k) => `<svg viewBox="0 0 150 84" style="background:#efe9dd"><circle cx="${108 + (k % 3)}" cy="36" r="${24 - (k % 2) * 2}" fill="#2f5bff"/><path d="M4 84A26 26 0 0 1 56 84Z" fill="#ff4b1f"/><text x="9" y="36" fill="#141414" style="font:900 23px Geist,sans-serif;letter-spacing:-1px">MOTION</text><rect x="10" y="50" width="38" height="10" rx="5" fill="#ffc93c"/></svg>`,
+  broll: (k) => img(k % 2 ? 'assets/image/s4-lib-1.png' : 'assets/image/s4-talk.png'),
+  av: (k) => img('assets/image/window-city.png', `object-position:${30 + (k % 3) * 15}% 50%`),
+};
+const CAPS = [['剪口播', 'cut'], ['挑素材', 'pick'], ['加字幕', 'subs'], ['配B-roll', 'broll'], ['调色', 'grade'], ['做MG动画', 'mg'], ['配音配乐', 'av']];
+/* every clip on the video track: [the word it starts on, the word after it, label, icon, frame k → html] */
+const CLIPS = [
+  ...CAPS.map(([n, k], i) => [n, i < CAPS.length - 1 ? CAPS[i + 1][0] : '产品片', n, k, frames[k]]),
+  ...FILMS.map(([n, f], i) => [n, i < 5 ? FILMS[i + 1][0] : '它都能做', n, 'film', (k) => img(thumb(f, k % 6))]),
+];
+const clipsEl = $('#clips');
+const CL = CLIPS.map(([w0, w1, label, ic, fr]) => {
+  const el = document.createElement('div'); el.className = 'clip';
+  el.innerHTML = `<div class="strip">${Array.from({ length: 12 }, (_, k) => fr(k)).join('')}</div><div class="ring"></div><div class="h" style="left:0;border-radius:12px 0 0 12px"></div><div class="h" style="right:0;border-radius:0 12px 12px 0"></div><div class="lab">${icon(ic)}${label}</div><div class="glint"></div>`;
+  clipsEl.append(el);
+  return { el, w0, w1, lab: $('.lab', el) };
+});
+
+/* ── the scenes in the viewer ── */
+/* 剪口播: the ums are found, and cut */
+const TR = [['大家好，', 0], ['嗯，', 1], ['今天', 0], ['那个，', 1], ['我们聊聊', 0], ['就是', 1], ['怎么剪口播', 0]];
+$('#tr').innerHTML = TR.map(([w]) => `<span>${w}</span>`).join('');
+/* 挑素材: three of eight fit the search and go into the tray */
+const LIB = [1, 4, 2, 5, 6, 3, 7, 8], MATCH = [1, 2, 3];
+const tile = (i) => [40 + (i % 4) * 322, 186 + Math.floor(i / 4) * 186];
+const slot = (m) => [200 + m * 286, 576];                 /* each pick's place in the tray, at 0.78 size */
+$('#lib-grid').innerHTML = LIB.map((n, i) => `<div class="th" style="left:${tile(i)[0]}px;top:${tile(i)[1]}px"><img src="assets/image/s4-lib-${n}.png"><div class="ok"></div><b>${MATCH.indexOf(n) + 1}</b></div>`).join('');
+/* 做MG动画: the poster's pieces, built once; mgFrame(k) places every one at k seconds into its move */
+const expo = (x) => (x >= 1 ? 1 : 1 - Math.pow(2, -10 * clamp(x)));
+const back = (x, o = 1.7) => { x = clamp(x) - 1; return 1 + x * x * ((o + 1) * x + o); };
+function mgBuild() {
+  const NS = 'http://www.w3.org/2000/svg', el = (tag, at) => { const e = document.createElementNS(NS, tag); for (const [a, v] of Object.entries(at)) e.setAttribute(a, v); return e; };
+  const grid = $('#mg-grid');
+  for (const x of [84, 308, 532, 756, 980, 1204]) grid.append(el('line', { x1: x, y1: 0, x2: x, y2: 756 }));
+  for (const y of [126, 378, 630]) grid.append(el('line', { x1: 0, y1: y, x2: 1344, y2: y }));
+  for (const ln of grid.children) { const L = ln.getTotalLength(); ln.setAttribute('stroke-dasharray', `${L} ${L}`); ln.dataset.len = String(L); }
+  const bars = $('#mg-bars');
+  for (let i = 0; i < 6; i++) bars.append(el('rect', { x: 1150, y: 528 + i * 17, width: 120, height: 8, rx: 1 }));
+  const star = $('#mg-star');
+  for (let i = 0; i < 4; i++) { const a = (i * Math.PI) / 4; star.append(el('line', { x1: -Math.cos(a) * 74, y1: -Math.sin(a) * 74, x2: Math.cos(a) * 74, y2: Math.sin(a) * 74 })); }
+  const reg = $('#mg-reg');
+  for (const [x, y] of [[40, 40], [1304, 40], [40, 716], [1304, 716]]) { reg.append(el('line', { x1: x - 12, y1: y, x2: x + 12, y2: y })); reg.append(el('line', { x1: x, y1: y - 12, x2: x, y2: y + 12 })); }
+  $('#mg-word').innerHTML = [...'MOTION'].map((ch) => `<span style="display:inline-block">${ch}</span>`).join('');
+  return mgFrame;
+}
+function mgFrame(k) {
+  /* the hairlines draw across first, one after another */
+  [...$('#mg-grid').children].forEach((ln, i) => { const L = +ln.dataset.len; ln.setAttribute('stroke-dashoffset', String(L * (1 - expo(prog(k, 0.02 * i, 0.3 + 0.02 * i))))); });
+  /* the disc: out of a point with a little overshoot, breathing after */
+  const dk = back(prog(k, 0.04, 0.46), 1.4) * (1 + 0.012 * Math.sin(k * 3.1));
+  $('#mg-disc').setAttribute('r', String(Math.max(0, 236 * dk)));
+  /* the half disc turns up into place from the left edge */
+  $('#mg-half').setAttribute('transform', `rotate(${-180 * (1 - expo(prog(k, 0.06, 0.5)))} 250 756)`);
+  /* the pill slides in on the line under the words */
+  $('#mg-pill').setAttribute('transform', `translate(${lerp(-420, 94, expo(prog(k, 0.22, 0.6)))} 470)`);
+  /* the bars wipe in from the left, a little apart */
+  [...$('#mg-bars').children].forEach((r, i) => { r.setAttribute('width', String(120 * expo(prog(k, 0.26 + 0.035 * i, 0.56 + 0.035 * i)))); });
+  /* the asterisk on the disc: pops, then keeps turning */
+  const sk = back(prog(k, 0.3, 0.62), 2.2);
+  $('#mg-star').setAttribute('transform', `translate(1128 318) rotate(${45 * expo(prog(k, 0.3, 0.8)) + 40 * k}) scale(${sk})`);
+  $('#mg-reg').setAttribute('opacity', String(expo(prog(k, 0.1, 0.4))));
+  /* MOTION, a letter at a time out of its line; its Chinese wiped on under it; the small type */
+  [...$('#mg-word').children].forEach((sp, i) => { const p = expo(prog(k, 0.12 + 0.045 * i, 0.5 + 0.045 * i)); sp.style.transform = `translateY(${(1 - p) * 240}px)`; });
+  $('#mg-cn').style.clipPath = `inset(-10% ${100 - 100 * expo(prog(k, 0.36, 0.72))}% -10% 0)`;
+  ['#mg-s1', '#mg-s2', '#mg-s3'].forEach((id, i) => { const p = prog(k, 0.4 + 0.06 * i, 0.62 + 0.06 * i); $(id).style.opacity = String(p); $(id).style.transform = `translateY(${(1 - expo(p)) * 8}px)`; });
+}
+let MG = null;
+/* 配音配乐: two lanes drawn from real sound (lib/s4/peaks.json: a voice and the score, 50 a second), bright where the
+   playhead has been */
+const AV_LINE = ['凌晨两点，', '这座城', '还醒着。'];
+$('#av-line').innerHTML = AV_LINE.map((w) => `<span>${w}</span>`).join('');
+async function avLanes() {
+  const P = await (await fetch('lib/s4/peaks.json')).json();
+  const bars = (arr, from, color) => {
+    const n = 110, w = 656 / n; let d = '';
+    for (let k = 0; k < n; k++) { const a = Math.max(1.5, 20 * Math.min(1, (arr[from + Math.floor(k * 1.4)] ?? 0) * 1.25)); d += `M${(k + 0.5) * w} ${24 - a}V${24 + a}`; }
+    return `<path d="${d}" stroke="${color}" stroke-width="3" stroke-linecap="round" opacity=".38"/><path class="lit" d="${d}" stroke="${color}" stroke-width="3" stroke-linecap="round"/>`;
+  };
+  $('#av-vo').innerHTML = bars(P.vo, 150, '#f0a687');
+  $('#av-mu').innerHTML = bars(P.music, 40, '#8eaaff');
+}
+/* the films: a wall of all six, each one big as it is named */
+const VIDS = [];
+$('#sc-films').innerHTML = FILMS.map(([name]) => `<div class="cell"><video class="fill" muted playsinline preload="auto"></video><div class="tag">${name}</div></div>`).join('');
+$$('#sc-films .cell').forEach((c, i) => { const v = $('video', c); v.src = `assets/video/showcase-hd/${FILMS[i][1]}.mp4`; VIDS.push(v); });
+const GW = 1344, GH = 756, CW = (GW - 4 * 18) / 3, CH = CW * 9 / 16, GY = (GH - 2 * CH - 18) / 2;
+const cellRect = (i) => [18 + (i % 3) * (CW + 18), GY + Math.floor(i / 3) * (CH + 18), CW, CH];
+
+/* ── the lanes: the voice and the score, as loud as they are ── */
+const seekTo = (v, s) => new Promise((ok) => {
+  const d = v.duration || 1, want = Math.min(d - 0.05, Math.max(0, s % Math.max(0.1, d - 0.05)));
+  /* done once the video is still and there: a 'seeked' can belong to an earlier seek */
+  const go = () => {
+    if (!v.seeking && v.readyState >= 2 && Math.abs(v.currentTime - want) < 0.002) return ok();
+    v.addEventListener('seeked', go, { once: true });
+    if (Math.abs(v.currentTime - want) >= 0.002) v.currentTime = want;
+  };
+  go();
+});
+const show = (id, on) => { $(id).style.visibility = on ? 'visible' : 'hidden'; };
+
+/* the timeline's view: which seconds the lanes show. It plays from the first word with the playhead in the middle and
+   the edit running under it, 400 px a second; on 它都能做 it draws back to the whole edit */
+const XL = 24, XR = 1896, XC = 960, PXS = 420;
+const playing = (tc) => [tc - (XC - XL) / PXS, tc + (XR - XC) / PXS];
+function view(t) {
+  const a = B['剪口播'], bEnd = B['它都能做'], all = [a - 0.6, bEnd + 0.6];
+  if (t < bEnd) return playing(Math.max(t, a));
+  const k = inout(prog(t, bEnd, bEnd + 0.55)), p = playing(bEnd); return [lerp(p[0], all[0], k), lerp(p[1], all[1], k)];
+}
+
+function frame(t) {
+  const waits = [];
+  const a = B['剪口播'], aEnd = B['产品片'], bEnd = B['它都能做'];
+  const tc = clamp(t, a, bEnd);
+  const [v0, v1] = view(t), X = (s) => XL + (s - v0) / (v1 - v0) * (XR - XL), pps = (XR - XL) / (v1 - v0);
+
+  /* S3's end card, as it was left. The card goes to the editor's dark and its mark lights up; then the mark comes apart
+     into the editor, its three pieces at once, each its own way so none crosses another: the two clips (as long as they
+     really are, the top one's start under the playhead, the gap the logo cuts round it closing) slide out from under it
+     and down, the short one swinging wide to land after the long one; the playhead, the top layer, lifts and drops onto
+     the row's start. Lit as solid things (a gradient, a lit top edge, a shadow that grows as they lift), with a shutter's
+     blur when they move fast; as they land they turn into the clips they stand for, a glint passing over each. The rest
+     of the row slides in, the picture comes up over it, whole, and the first clip plays */
+  const VS = 880 / 756, ROW = 968, RH = 84;                 /* the picture above the playhead's head; the row under it */
+  const go = inout(prog(t, 0.08, 0.36));
+  $('#card').style.opacity = String(1 - go);
+  const ink = [42, 37, 32].map((c, j) => Math.round(lerp(c, [246, 244, 240][j], go)));
+  const bg = [234, 226, 214].map((c, j) => Math.round(lerp(c, [12, 13, 16][j], go))).join(',');   /* the card's cream, then the editor's dark */
+  const lr = (a, b, k) => a.map((v, j) => lerp(v, b[j], k));
+  const c0 = [X(B['剪口播']) + 2, ROW, (B['挑素材'] - B['剪口播']) * pps - 4, RH], c1 = [X(B['挑素材']) + 2, ROW, (B['加字幕'] - B['挑素材']) * pps - 4, RH];
+  /* the mark as drawn on the card (lib/mark-dark.svg, 2.85 px a unit): the clips whole, the playhead over them */
+  const U = (x, y, w, h) => [295 + (x - 14) * 2.846, 351 + (y - 12) * 2.84, w * 2.846, h * 2.84];
+  const B1 = U(22, 12, 64, 20), B2 = U(25, 44, 47, 19), H0 = [295, 351, 74, 71], S0 = [320, 405, 25, 174];
+  const out = (x) => 1 - Math.pow(1 - x, 2.4);
+  const pose = (tt) => {
+    const k = prog(tt, 0.22, 0.95), e = inout(k), arc = Math.sin(Math.PI * k);
+    const b1 = lr(B1, c0, e); b1[0] += 90 * Math.sin(Math.PI * Math.sqrt(Math.min(k / 0.7, 1)));   /* out from under the playhead at once */
+    const b2 = lr(B2, c1, e); b2[0] = lerp(B2[0], c1[0], out(k)) + 40 * arc;          /* the short one wide, ahead of the long one */
+    const head = lr(H0, [X(a) - 15, 928, 30, 29], e), stem = lr(S0, [X(a) - 2, 956, 4, 110], e);
+    head[0] -= 34 * arc; stem[0] -= 34 * arc;                                         /* the playhead keeps to their left */
+    return { k, e, arc, b1, b2, head, stem };
+  };
+  const P = pose(t), { e, arc } = P, lift = 1 + 0.06 * arc, done = t >= 0.97;
+  const land = prog(t, 0.84, 0.97);                                                   /* the pieces become the clips */
+  const ring = (1 - prog(t, 0.3, 0.6)) * 10;                                           /* the logo's gap, closing as they part */
+  const shadow = (d) => `0 ${8 * arc * d}px ${22 * arc * d}px rgba(0,0,0,${0.5 * arc})`;
+  const rgb = (c, m = 1) => `rgb(${c.map((v) => Math.round(v * m)).join(',')})`;
+  const face = `linear-gradient(180deg, ${rgb(ink, 1)} 0%, ${rgb(ink, 0.88)} 100%)`;
+  const edge = `inset 0 1.5px 0 rgba(255,255,255,${0.55 * go})`;
+  const place = (el, r, rad, extra, o = 1) => { el.style.cssText = `left:${r[0]}px;top:${r[1]}px;width:${r[2]}px;height:${r[3]}px;border-radius:${rad}px;background:${face};opacity:${o};visibility:${done || o < 0.003 ? 'hidden' : 'visible'};${extra}`; };
+  const fade = 1 - land;
+  place($('#mk-b1'), P.b1, lerp(14, 11, e), `box-shadow:${edge}, ${shadow(0.6)}`, fade);
+  place($('#mk-b2'), P.b2, lerp(14, 11, e), `box-shadow:${edge}, ${shadow(0.6)}`, fade);
+  place($('#mk-stem'), P.stem, lerp(12, 2, e), `box-shadow:0 0 0 ${ring}px rgb(${bg}), ${shadow(1)};transform:scale(${lift});transform-origin:50% 0`);
+  const hd = $('#mk-head');
+  hd.style.cssText = `left:${P.head[0]}px;top:${P.head[1]}px;width:${P.head[2]}px;height:${P.head[3]}px;color:${rgb(ink)};visibility:${done ? 'hidden' : 'visible'};transform:scale(${lift});transform-origin:50% 100%;filter:drop-shadow(${shadow(1)})`;
+  const path = hd.querySelector('path'); path.style.stroke = `rgb(${bg})`; path.setAttribute('stroke-width', String(7 * ring / 10));
+  /* the shutter: where each piece was a third, two thirds and a whole of a frame ago, fainter, while it moves */
+  const gh = $('#mk-ghosts');
+  const NG = 6;                                                                      /* six samples across a 180° shutter */
+  if (!gh.children.length) for (let n = 0; n < 3 * NG; n++) { const d = document.createElement('div'); d.className = 'mk ghost'; gh.append(d); }
+  [...gh.children].forEach((d, n) => {
+    const m = n % NG, lag = ((m + 1) / NG) * (0.5 / 30), Q = pose(t - lag), which = ['b1', 'b2', 'stem'][Math.floor(n / NG)];
+    const moving = t > 0.24 && t < 0.95, o = moving ? 0.16 * (1 - m / NG) * Math.min(1, Q.arc * 2) * fade : 0;
+    place(d, Q[which], which === 'stem' ? lerp(12, 2, Q.e) : lerp(14, 11, Q.e), 'filter:blur(1.5px)', o);
+  });
+  $('#black').style.opacity = String(prog(t, DUR - 0.32, DUR - 0.04));     /* into S5's dark, once the wall has sat */
+  const up = out5(prog(t, 0.9, 1.3));                       /* the playhead down below it: nothing crosses the picture */
+  $('#viewer').style.opacity = String(up);
+  $('#viewer').style.transform = `translateY(-10px) scale(${VS * (0.96 + 0.04 * up)})`;
+  const rise = out5(prog(t, 0.6, 1.0));
+  $('#row').style.opacity = String(rise);
+  $('#row').style.transform = `translateX(${(1 - rise) * 260}px)`;
+
+  /* ── the timeline ── */
+  /* the clips: each as long as its word, the one under the playhead selected */
+  let on = -1;
+  CL.forEach((c, i) => {
+    const t0 = B[c.w0], t1 = B[c.w1];
+    if (i < 2) {                                         /* the pieces land as these: in under them, a glint over each */
+      c.el.style.opacity = String(inout(prog(t, 0.8, 0.95)));
+      const gl = $('.glint', c.el), g = prog(t, 0.86 + 0.06 * i, 1.24 + 0.06 * i);
+      gl.style.opacity = String(Math.sin(Math.PI * g)); gl.style.backgroundPosition = `${lerp(110, -10, g)}% 0`;
+    }
+    const x0 = X(t0) + 2, w = (t1 - t0) * pps - 4;
+    c.el.style.left = `${x0}px`; c.el.style.width = `${w}px`;
+    c.lab.style.opacity = String(clamp((w - 80) / 50) * clamp((1780 - x0) / 80));     /* not half a name at the right edge */
+    c.lab.style.transform = `translateX(${clamp(140 - x0, 0, Math.max(0, w - c.lab.offsetWidth - 20))}px)`;     /* kept in sight past the left fade */
+    const here = tc >= t0 && tc < t1 && t >= a - 0.6 && t < bEnd;
+    if (here) on = i;
+    c.el.classList.toggle('on', here);
+    c.el.classList.toggle('lit', t >= bEnd);
+  });
+  /* the playhead: the mark's, once it has landed; then the middle as the edit plays */
+  $('#ph').style.transform = `translate(${X(tc)}px, 0)`; $('#ph').style.opacity = String(t >= 0.97 ? 1 : 0);
+
+  /* ── the viewer: the clip under the playhead (the first one's, from the moment the picture comes up) ── */
+  let cur = on < 0 && t >= 0.85 && t < a ? 0 : on;
+
+  const SC = ['#sc-cut', '#sc-pick', '#sc-subs', '#sc-broll', '#sc-grade', '#sc-mg', '#sc-av'];
+  SC.forEach((id, i) => show(id, cur === i && t < aEnd));
+  show('#sc-films', t >= aEnd);
+  const u = (n) => t - B[n];
+  /* the name of what is on */
+  let nm = null;
+  if (t >= a && cur >= 0 && cur < CAPS.length) nm = [`0${cur + 1}`, CAPS[cur][0]];
+  if (cur >= CAPS.length && t < bEnd) nm = ['作品', FILMS[cur - CAPS.length][0]];
+  $('#name').style.opacity = nm ? '1' : '0';
+  if (nm) { $('#name .ix').textContent = nm[0]; $('#name .nm').textContent = nm[1]; }
+
+  /* 剪口播: the take as it was, ums and all; on its word they are found, and cut */
+  if (cur === 0) {
+    const k = t < a ? -1 : u('剪口播');
+    $('#talk').style.transform = `scale(${(k < 0.3 ? 1.0 : 1.05) + 0.01 * t})`;      /* a jump cut where the ums were */
+    $$('#tr span').forEach((s, i) => {
+      if (!TR[i][1]) return;
+      const p = out3(prog(k, 0.12 + 0.05 * (i >> 1), 0.34 + 0.05 * (i >> 1)));
+      s.classList.toggle('um', k >= 0);
+      s.style.maxWidth = `${(1 - p) * 140}px`; s.style.opacity = String(1 - p);
+    });
+    $('#tr').style.opacity = String(out3(prog(t, 0.35, 0.75)));
+    const cp = out5(prog(k, 0.3, 0.5)); $('#cut-res').style.opacity = String(cp); $('#cut-res').style.transform = `translateY(${(1 - cp) * 10}px)`;
+  }
+  /* 挑素材: the search; the three that fit light up and go into the tray, the rest go dim */
+  if (cur === 1) {
+    const k = u('挑素材');
+    const q = '海边 日落'; $('#q').textContent = q.slice(0, Math.round(clamp(k / 0.16) * q.length));
+    let n = 0;
+    $$('#lib-grid .th').forEach((th, i) => {
+      const m = MATCH.indexOf(LIB[i]), [x0, y0] = tile(i);
+      if (m >= 0) {
+        const p = out5(prog(k, 0.16 + m * 0.04, 0.28 + m * 0.04)), f = inout(prog(k, 0.28 + m * 0.05, 0.56 + m * 0.05));
+        if (f >= 0.999) n++;
+        const [x1, y1] = slot(m);
+        th.querySelector('.ok').style.opacity = String(p); th.querySelector('b').style.opacity = String(p);
+        th.style.left = `${lerp(x0, x1, f)}px`; th.style.top = `${lerp(y0, y1, f) - 30 * Math.sin(Math.PI * f)}px`;
+        th.style.transform = `scale(${lerp(1, 0.78, f)})`; th.style.zIndex = '2';
+      } else { th.style.opacity = String(1 - 0.6 * out3(prog(k, 0.2, 0.36))); th.style.zIndex = '1'; }
+    });
+    $('#tray-n').textContent = `已选 ${n}`;
+    $('#pick-res').style.opacity = String(out5(prog(k, 0.2, 0.36)));
+  }
+  /* 加字幕: the film's captions come in word by word as the word is said */
+  if (cur === 2) waits.push(seekTo($('#subs-v'), 0.3 + 1.6 * clamp(u('加字幕') / (B['配B-roll'] - B['加字幕']))));
+  /* 配B-roll: a cutaway drops onto V2 over the talk; the picture goes to it as the playhead reaches it */
+  if (cur === 3) {
+    const k = u('配B-roll'), len = B['调色'] - B['配B-roll'];
+    const drop = out5(prog(k, 0.02, 0.24)), px = 300 + 620 * clamp(k / len), inB = px >= 480;
+    $('#br-clip').style.transform = `translateY(${(1 - drop) * -46}px)`; $('#br-clip').style.opacity = String(clamp(drop * 2));
+    $('#br-ph').style.left = `${px}px`;
+    $('#br-a').style.opacity = inB ? '0' : '1'; $('#br-b').style.opacity = inB ? '1' : '0';
+    $('#br-b').style.transform = `scale(${1.04 + 0.03 * k})`; $('#br-a').style.transform = `scale(${1.0 + 0.01 * k})`;
+    $('#br-tag').style.opacity = String(inB ? 1 : 0);
+  }
+  /* 调色: the grade wipes over the flat log */
+  if (cur === 4) {
+    const g0 = B['调色'], g1 = B['做MG动画'];
+    const x = lerp(8, 92, inout(prog(t, g0 + 0.02, g1 - 0.08)));
+    $('#graded').style.clipPath = `inset(0 0 0 ${x}%)`; $('#gline').style.left = `${x * 13.44 - 1.5}px`;
+    $('#g-a').style.left = '28px'; $('#g-a').style.opacity = String(clamp((x - 22) / 8));
+    $('#g-b').style.right = '28px'; $('#g-b').style.opacity = String(clamp((78 - x) / 8));
+    $$('.gr').forEach((im) => { im.style.transform = `scale(${1.02 + 0.03 * (t - g0)})`; });
+  }
+  /* 做MG动画: the poster builds itself on the word */
+  if (cur === 5) MG(u('做MG动画') + 0.06);
+  /* 配音配乐: the shot drifts in; the lanes come up under it, the playhead goes over them and the line lights as it
+     passes */
+  if (cur === 6) {
+    const k = u('配音配乐'), len = B['产品片'] - B['配音配乐'], up = out5(prog(k, 0, 0.3));
+    $('#av-img').style.transform = `scale(${1.03 + 0.03 * k})`;
+    $('#av-lanes').style.opacity = String(up); $('#av-lanes').style.transform = `translateY(${22 * (1 - up)}px)`;
+    const ph = clamp((k - 0.08) / Math.max(0.1, len - 0.12));
+    $('#av-ph').style.left = `${112 + 656 * ph}px`;
+    $$('#av-lanes .lit').forEach((l) => { l.style.clipPath = `inset(0 ${100 * (1 - ph)}% 0 0)`; });
+    $$('#av-line span').forEach((sp, i) => sp.classList.toggle('on', ph > 0.02 + i * 0.3));
+  }
+  /* the films: each one as it is named, cut in on its word; on 它都能做 the last goes back into its place in a wall of all six */
+  if (t >= aEnd) {
+    const big = cur >= CAPS.length ? cur - CAPS.length : -1, back = inout(prog(t, bEnd + 0.5, bEnd + 1.0));     /* the MV a moment more, then the wall */
+    $$('#sc-films .cell').forEach((c, i) => {
+      const g = cellRect(i), full = [0, 0, GW, GH];
+      let r = g, op = 0, z = 1;
+      if (big >= 0) { r = full; op = i === big ? 1 : 0; z = 2; }
+      else if (t >= bEnd) { r = i === 5 ? full.map((v, j) => lerp(v, g[j], back)) : g; op = i === 5 ? 1 : back; z = i === 5 ? 2 : 1; }
+      c.style.left = `${r[0]}px`; c.style.top = `${r[1]}px`; c.style.width = `${r[2]}px`; c.style.height = `${r[3]}px`;
+      c.style.opacity = String(op); c.style.zIndex = String(z);
+      c.style.borderRadius = `${lerp(12, 0, r[2] === GW ? 1 : (r[2] - CW) / (GW - CW))}px`;
+      c.querySelector('.tag').style.opacity = String(clamp(1 - (r[2] - CW) / 120));
+      const from = i === big ? B[FILMS[i][0]] : (i === 5 ? B['MV'] : bEnd);
+      if (op > 0) {
+        /* each film from its own moment (SEG), at its own speed */
+        waits.push(seekTo(VIDS[i], (SEG[FILMS[i][0]] ?? 0.3) + (t - from)));
+      }
+    });
+  }
+  return Promise.all(waits);
+}
+const loaded = (v) => new Promise((ok) => { if (v.readyState >= 2) ok(); else { v.addEventListener('loadeddata', ok, { once: true }); v.addEventListener('error', ok, { once: true }); } });
+window.film = {
+  duration: DUR,
+  ready: (async () => {
+    MG = mgBuild();
+    await Promise.all([beats(), avLanes(), fontsReady(), ...VIDS.map(loaded), loaded($('#subs-v')), ...$$('img').map((i) => i.decode().catch(() => {}))]);
+  })(),
+  frame,
+};
+</script>
+</body>
+</html>

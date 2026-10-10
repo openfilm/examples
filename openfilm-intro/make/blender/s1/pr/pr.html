@@ -1,0 +1,461 @@
+<!doctype html>
+<html lang="zh">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=1920, height=1080">
+<title>Premiere Pro — 冬日公路</title>
+<style>
+  /* Premiere Pro 2025 (Spectrum, dark), Editing workspace, Simplified Chinese, on a 1920 × 1080 macOS screen at 3:47 a.m. */
+  :root {
+    --gap: #0c0c0c; --panel: #1f1f1f; --panel2: #232323; --tabbar: #1a1a1a; --line: #2e2e2e; --line2: #383838;
+    --text: #c6c6c6; --dim: #8b8b8b; --faint: #5f5f5f; --white: #f2f2f2; --blue: #4b9cf5; --blue2: #2c6bd9; --tc: #5aa6ff;
+    --violet: #6243c4; --iris: #4659c4; --rose: #a83a72; --forest: #2c7d43; --caribbean: #1d8376; --cerulean: #2b689c; --mango: #ad7428;
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  html, body { width: 1920px; height: 1080px; overflow: hidden; background: var(--gap); }
+  body { font: 400 12px/1 -apple-system, "SF Pro Text", "PingFang SC", "Helvetica Neue", sans-serif; color: var(--text); -webkit-font-smoothing: antialiased; }
+  .abs { position: absolute; }
+  .num { font-variant-numeric: tabular-nums; font-feature-settings: "tnum"; }
+  svg { display: block; }
+  .ic { stroke: #a4a4a4; stroke-width: 1.4; fill: none; stroke-linecap: round; stroke-linejoin: round; }
+
+  /* ── macOS menu bar ── */
+  #mac { left: 0; top: 0; width: 1920px; height: 25px; background: #18181a; display: flex; align-items: center; padding: 0 14px; gap: 21px; font-size: 13.5px; color: #e9e9e9; }
+  #mac b { font-weight: 700; }
+  #mac .r { margin-left: auto; display: flex; align-items: center; gap: 16px; }
+  /* ── Premiere's own header: Import · Edit · Export ── */
+  #app { left: 0; top: 25px; width: 1920px; height: 35px; background: #121212; display: flex; align-items: center; padding: 0 12px; }
+  #app .modes { display: flex; gap: 22px; margin-left: 18px; font-size: 13px; color: #b9b9b9; }
+  #app .modes .on { color: #fff; box-shadow: inset 0 -2px 0 #fff; padding-bottom: 7px; margin-bottom: -9px; }
+  #app .ttl { position: absolute; left: 0; right: 0; text-align: center; font-size: 12.5px; color: #cfcfcf; pointer-events: none; }
+  #app .rt { margin-left: auto; display: flex; gap: 14px; align-items: center; }
+
+  /* ── panels ── */
+  .panel { position: absolute; background: var(--panel); border-radius: 4px; overflow: hidden; }
+  .tabs { position: absolute; left: 0; right: 0; top: 0; height: 28px; display: flex; align-items: center; padding: 0 10px; gap: 18px; background: var(--panel); border-bottom: 1px solid var(--line); white-space: nowrap; }
+  .tabs span { color: #9a9a9a; font-size: 12px; }
+  .tabs span.on { color: #ececec; }
+  .tabs .menu { color: #9a9a9a; margin-left: -12px; font-size: 13px; }
+  .tabs .more { margin-left: auto; color: #8a8a8a; font-size: 13px; letter-spacing: -2px; }
+
+  /* Effect Controls */
+  #ec { left: 4px; top: 64px; width: 616px; height: 497px; }
+  #ec .head { position: absolute; left: 0; right: 0; top: 29px; height: 26px; display: flex; align-items: center; padding: 0 10px; color: #a9a9a9; font-size: 11.5px; border-bottom: 1px solid var(--line); }
+  #ec .head .r { margin-left: auto; }
+  #ec .split { position: absolute; left: 378px; top: 55px; bottom: 30px; width: 1px; background: var(--line); }
+  #ec .mini { position: absolute; left: 379px; right: 0; top: 55px; bottom: 30px; background: #1b1b1b; }
+  #ec .mini .ruler { position: absolute; left: 0; right: 0; top: 0; height: 18px; border-bottom: 1px solid var(--line); }
+  #ec .mini .clipbar { position: absolute; left: 10px; right: 26px; top: 20px; height: 14px; border-radius: 2px; background: #5a3b4a; color: #e3e3e3; font-size: 10.5px; line-height: 14px; padding-left: 6px; }
+  #ec .mini .ph { position: absolute; top: 0; bottom: 0; width: 1px; background: var(--blue); }
+  .row { position: absolute; left: 0; width: 616px; height: 24px; display: flex; align-items: center; font-size: 12px; }
+  .row .lab { display: flex; align-items: center; gap: 6px; color: #bdbdbd; white-space: nowrap; }
+  .row .val { color: var(--blue); white-space: nowrap; }
+  .row .val.hot { color: #fff; background: var(--blue2); border-radius: 2px; padding: 1px 3px; margin-left: -3px; }
+  .row .nav { position: absolute; left: 330px; display: flex; gap: 5px; align-items: center; }
+  .row .kf { position: absolute; top: 7px; width: 9px; height: 9px; transform: rotate(45deg); background: #b8b8b8; }
+  .row .kf.sel { background: var(--blue); }
+  .row.sec { color: #e4e4e4; font-weight: 600; }
+  .fx { display: inline-block; font: italic 700 10px/1 -apple-system, sans-serif; color: #d9d9d9; border: 1px solid #6c6c6c; border-radius: 2px; padding: 1px 2px; margin-right: 2px; }
+  .sw { width: 12px; height: 12px; }
+  #ec .foot { position: absolute; left: 0; right: 0; bottom: 0; height: 30px; display: flex; align-items: center; padding: 0 10px; border-top: 1px solid var(--line); }
+
+  /* Program monitor */
+  #prog { left: 624px; top: 64px; width: 988px; height: 497px; }
+  #prog .pic { position: absolute; left: 154px; top: 46px; width: 680px; height: 382px; background: #000; overflow: hidden; }
+  #prog .pic img.fr { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; }
+  #prog .pic .gfx { position: absolute; left: 0; top: 0; width: 1920px; height: 1080px; transform-origin: 0 0; transform: scale(0.354166); }
+  #prog .pic .gfx .t1 { position: absolute; left: 132px; top: 760px; font: 900 136px/1 "Helvetica Neue", -apple-system, sans-serif; letter-spacing: -4px; color: #fff; white-space: nowrap; }
+  #prog .pic .gfx .t0 { position: absolute; left: 140px; top: 712px; font: 600 26px/1 Menlo, monospace; letter-spacing: 12px; color: rgba(255,255,255,.9); white-space: nowrap; }
+  #prog .pic .box { position: absolute; border: 1px solid #5fa8ff; }
+  #prog .pic .box i { position: absolute; width: 6px; height: 6px; background: #fff; border: 1px solid #2c6bd9; }
+  #prog .pic .anchor { position: absolute; width: 11px; height: 11px; margin: -5px 0 0 -5px; border: 1px solid #5fa8ff; border-radius: 50%; }
+  #prog .bar { position: absolute; left: 0; right: 0; top: 434px; height: 22px; display: flex; align-items: center; padding: 0 12px; gap: 10px; }
+  #prog .tcv { color: var(--tc); font-size: 13px; }
+  .dd { display: inline-flex; align-items: center; gap: 4px; height: 18px; padding: 0 5px; border: 1px solid #444; border-radius: 3px; color: #cfcfcf; font-size: 11.5px; }
+  #prog .scrub { position: absolute; left: 12px; right: 12px; top: 458px; height: 10px; }
+  #prog .scrub .tr { position: absolute; left: 0; right: 0; top: 4px; height: 1px; background: #555; }
+  #prog .scrub .tk { position: absolute; top: 2px; width: 1px; height: 5px; background: #4d4d4d; }
+  #prog .scrub .hd { position: absolute; top: 0; width: 9px; height: 9px; margin-left: -4px; background: var(--blue); clip-path: polygon(0 0, 100% 0, 100% 60%, 50% 100%, 0 60%); }
+  #prog .tp { position: absolute; left: 0; right: 0; top: 470px; height: 24px; display: flex; justify-content: center; align-items: center; gap: 15px; }
+
+  /* the right column: Info, then the panels stacked shut */
+  #side { left: 1616px; top: 64px; width: 300px; height: 1012px; }
+  #side .info { position: absolute; left: 12px; top: 40px; right: 10px; font-size: 11.5px; line-height: 17px; color: #bdbdbd; }
+  #side .info b { display: block; color: #e2e2e2; font-weight: 600; margin: 0 0 4px; }
+  #side .info .kv { display: flex; } #side .info .kv span:first-child { width: 78px; text-align: right; margin-right: 8px; color: #8f8f8f; }
+  .stack { position: absolute; left: 0; right: 0; height: 26px; display: flex; align-items: center; padding: 0 12px; border-top: 1px solid var(--line); color: #b3b3b3; font-size: 12px; background: var(--panel); }
+
+  /* Project */
+  #proj { left: 4px; top: 565px; width: 396px; height: 511px; }
+  #proj .path { position: absolute; left: 10px; right: 10px; top: 36px; display: flex; color: #bdbdbd; font-size: 11.5px; } #proj .path span:last-child { margin-left: auto; color: #8d8d8d; }
+  #proj .search { position: absolute; left: 10px; right: 40px; top: 56px; height: 22px; border-radius: 3px; background: #151515; border: 1px solid #333; display: flex; align-items: center; padding-left: 8px; gap: 6px; color: #6d6d6d; font-size: 11.5px; }
+  #proj .tile { position: absolute; width: 180px; }
+  #proj .tile .th { position: relative; width: 180px; height: 101px; border-radius: 3px; overflow: hidden; background: #111; }
+  #proj .tile .th img { width: 100%; height: 100%; object-fit: cover; display: block; }
+  #proj .tile .dur { position: absolute; right: 4px; bottom: 4px; font-size: 10.5px; color: #eee; background: rgba(0,0,0,.6); padding: 1px 3px; border-radius: 2px; }
+  #proj .tile .badge { position: absolute; left: 4px; bottom: 4px; width: 14px; height: 10px; border-radius: 1px; }
+  #proj .tile .nm { margin-top: 5px; display: flex; gap: 5px; align-items: center; color: #cdcdcd; font-size: 11.5px; white-space: nowrap; overflow: hidden; }
+  #proj .tile .nm i { width: 9px; height: 9px; border-radius: 1px; flex: none; }
+  #proj .foot { position: absolute; left: 0; right: 0; bottom: 0; height: 28px; border-top: 1px solid var(--line); display: flex; align-items: center; padding: 0 10px; gap: 12px; }
+
+  /* Tools */
+  #tools { left: 404px; top: 565px; width: 34px; height: 511px; }
+  #tools .t { position: absolute; left: 4px; width: 26px; height: 26px; border-radius: 3px; display: grid; place-items: center; }
+  #tools .t.on { background: var(--blue2); }
+
+  /* Timeline */
+  #tl { left: 442px; top: 565px; width: 1114px; height: 511px; }
+  #tl .tcb { position: absolute; left: 10px; top: 34px; color: var(--tc); font-size: 19px; letter-spacing: .3px; }
+  #tl .tbar { position: absolute; left: 10px; top: 60px; display: flex; gap: 11px; align-items: center; }
+  #tl .tbar .b { width: 22px; height: 20px; border-radius: 3px; display: grid; place-items: center; }
+  #tl .tbar .b.on { background: #2f3b52; }
+  #tl .ruler { position: absolute; left: 150px; right: 14px; top: 30px; height: 56px; }
+  #tl .ruler .lb { position: absolute; top: 6px; font-size: 10.5px; color: #8e8e8e; white-space: nowrap; }
+  #tl .ruler .tk { position: absolute; bottom: 8px; width: 1px; background: #4a4a4a; }
+  #tl .ruler .rb { position: absolute; bottom: 2px; height: 3px; }
+  #tl .hdr { position: absolute; left: 0; width: 150px; display: flex; align-items: center; gap: 6px; padding-left: 6px; background: var(--panel2); border-bottom: 1px solid #191919; }
+  #tl .hdr .sp { width: 18px; height: 16px; border-radius: 2px; font-size: 9.5px; display: grid; place-items: center; color: transparent; }
+  #tl .hdr .tg { width: 22px; height: 16px; border-radius: 2px; font-size: 10.5px; display: grid; place-items: center; color: #cfcfcf; background: #2c2c2c; }
+  #tl .hdr .tg.on, #tl .hdr .sp.on { background: var(--blue2); color: #fff; }
+  #tl .hdr .ms { width: 15px; height: 15px; border-radius: 2px; font-size: 9.5px; display: grid; place-items: center; background: #303030; color: #b5b5b5; }
+  #tl .lane { position: absolute; left: 150px; right: 14px; background: #1b1b1b; border-bottom: 1px solid #191919; }
+  .clip { position: absolute; border-radius: 3px; overflow: hidden; box-shadow: inset 0 0 0 1px rgba(255,255,255,.10); }
+  .clip .nm { position: absolute; left: 5px; top: 3px; right: 18px; font-size: 10.5px; color: #fff; white-space: nowrap; overflow: hidden; text-shadow: 0 1px 1px rgba(0,0,0,.35); }
+  .clip .fxb { position: absolute; right: 4px; top: 3px; font: italic 700 9px/1 -apple-system, sans-serif; color: rgba(255,255,255,.85); }
+  .clip .thumb { position: absolute; left: 0; top: 16px; bottom: 0; background-size: cover; background-position: center; }
+  .clip svg.wave { position: absolute; left: 0; bottom: 0; }
+  .clip.sel { box-shadow: inset 0 0 0 1.5px #fff; }
+  #tl .seam { position: absolute; width: 2px; margin-left: -1px; background: #141414; }
+  #tl .ph { position: absolute; top: 72px; bottom: 16px; width: 1px; background: var(--blue); }
+  #tl .phh { position: absolute; top: 58px; width: 13px; height: 14px; margin-left: -6px; background: var(--blue); clip-path: polygon(0 0, 100% 0, 100% 65%, 50% 100%, 0 65%); }
+  #tl .hsb { position: absolute; left: 150px; right: 14px; bottom: 3px; height: 9px; }
+  #tl .hsb .th { position: absolute; left: 4%; width: 68%; top: 2px; height: 5px; border-radius: 3px; background: #4a4a4a; }
+  #tl .hsb .th::before, #tl .hsb .th::after { content: ''; position: absolute; top: -2px; width: 9px; height: 9px; border-radius: 50%; border: 1.5px solid #8a8a8a; background: #1f1f1f; }
+  #tl .hsb .th::before { left: -5px; } #tl .hsb .th::after { right: -5px; }
+  #tl .vsb { position: absolute; right: 3px; width: 8px; border-radius: 4px; background: #2a2a2a; }
+
+  /* Audio meters */
+  #meter { left: 1560px; top: 565px; width: 52px; height: 511px; }
+  #meter .sc { position: absolute; right: 6px; top: 12px; bottom: 40px; width: 16px; }
+  #meter .sc span { position: absolute; right: 0; font-size: 9.5px; color: #8a8a8a; transform: translateY(-50%); }
+  #meter .bar { position: absolute; top: 12px; bottom: 40px; width: 8px; background: #0f0f0f; }
+  #meter .lvl { position: absolute; left: 0; right: 0; bottom: 0; background: linear-gradient(0deg, #2fbf4f 0%, #2fbf4f 62%, #d4cf2e 80%, #e04a2a 100%); background-size: 100% 380px; background-position: bottom; }
+  #meter .ss { position: absolute; bottom: 12px; font-size: 10px; color: #9a9a9a; }
+
+  /* cursors */
+  #cur { left: 0; top: 0; width: 32px; height: 32px; }
+  [data-off] { visibility: hidden !important; }
+  /* isolation: only the piece being rendered, without the pieces inside it */
+  body.iso * { visibility: hidden; }
+  body.iso .iso-on, body.iso .iso-on * { visibility: visible; }
+  body.iso .iso-on [data-piece], body.iso .iso-on [data-piece] * { visibility: hidden; }
+  html.iso, body.iso { background: transparent; }
+</style>
+</head>
+<body>
+<div id="mac" class="abs" data-piece="mac">
+  <svg width="14" height="16" viewBox="0 0 17 20"><path fill="#ececec" d="M14 10.6c0-2.6 2.1-3.8 2.2-3.9-1.2-1.8-3.1-2-3.7-2-1.6-.2-3.1.9-3.9.9-.8 0-2-.9-3.4-.9C3.5 4.8 1.9 5.8 1 7.4c-1.8 3.2-.5 7.9 1.3 10.4.9 1.3 1.9 2.7 3.2 2.6 1.3-.1 1.8-.8 3.3-.8s2 .8 3.4.8c1.4 0 2.3-1.3 3.1-2.6 1-1.4 1.4-2.8 1.4-2.9-.1 0-2.7-1-2.7-4.3zM11.5 3c.7-.9 1.2-2 1-3.2-1 0-2.3.7-3 1.6-.7.8-1.3 2-1.1 3.1 1.1.1 2.3-.6 3.1-1.5z"/></svg>
+  <b>Premiere Pro</b><span>文件</span><span>编辑</span><span>剪辑</span><span>序列</span><span>标记</span><span>图形和标题</span><span>视图</span><span>窗口</span><span>帮助</span>
+  <div class="r">
+    <svg width="25" height="12" viewBox="0 0 25 12"><rect x=".5" y=".5" width="21" height="11" rx="3" fill="none" stroke="#bdbdbd"/><rect x="2" y="2" width="4.5" height="8" rx="1.5" fill="#e8e8e8"/><rect x="22.5" y="4" width="1.6" height="4" rx=".8" fill="#9a9a9a"/></svg>
+    <svg width="17" height="13" viewBox="0 0 17 13"><path d="M8.5 12.5 6.4 10a3 3 0 0 1 4.2 0zM3.6 7.4a7 7 0 0 1 9.8 0l-1.4 1.5a5 5 0 0 0-7 0zM.8 4.6a11 11 0 0 1 15.4 0l-1.4 1.4a9 9 0 0 0-12.6 0z" fill="#e8e8e8"/></svg>
+    <svg width="15" height="15" viewBox="0 0 15 15"><circle cx="6" cy="6" r="4.6" fill="none" stroke="#e8e8e8" stroke-width="1.6"/><path d="m9.6 9.6 4 4" stroke="#e8e8e8" stroke-width="1.8" stroke-linecap="round"/></svg>
+    <span class="num">10月8日 周四 03:47</span>
+  </div>
+</div>
+<div id="app" class="abs" data-piece="app">
+  <svg width="18" height="18" viewBox="0 0 18 18"><path class="ic" d="M3 8.5 9 3l6 5.5V15H11v-4H7v4H3z"/></svg>
+  <div class="modes"><span>导入</span><span class="on">编辑</span><span>导出</span></div>
+  <div class="ttl">冬日公路_预告_v9_最终版 - 已编辑</div>
+  <div class="rt">
+    <svg width="18" height="18" viewBox="0 0 18 18"><rect class="ic" x="2.5" y="3.5" width="13" height="11" rx="1.5"/><path class="ic" d="M7 3.5v11M7 9h8.5"/></svg>
+    <svg width="18" height="18" viewBox="0 0 18 18"><path class="ic" d="M9 2.5v9M5.5 6 9 2.5 12.5 6M3.5 10v4.5h11V10"/></svg>
+    <svg width="18" height="18" viewBox="0 0 18 18"><path class="ic" d="M3 7V3h4M15 7V3h-4M3 11v4h4M15 11v4h-4"/></svg>
+  </div>
+</div>
+
+<!-- Effect Controls -->
+<div id="ec" class="panel" data-piece="ec">
+  <div class="tabs"><span>源: (无剪辑)</span><span class="on">效果控件</span><span class="menu">≡</span><span>Lumetri 范围</span><span>音频剪辑混合器: 序列 01</span><span>元数据</span><span class="more">&gt;&gt;</span></div>
+  <div class="head" data-piece="ec_head"><span>源 · 图形</span><span style="margin-left:16px">序列 01 · 图形</span><span class="r num">▸ 00:00:12:00</span></div>
+  <div class="split"></div>
+  <div class="mini" data-piece="ec_mini"><div class="ruler"></div></div>
+  <div id="ecRows"></div>
+  <div class="foot" data-piece="ec_foot"><span class="num" style="color:var(--tc);font-size:12.5px" id="ecTc">00:00:12:14</span>
+    <span style="margin-left:auto;display:flex;gap:12px"><svg width="16" height="16" viewBox="0 0 16 16"><path class="ic" d="M3 13 13 3M6 3h7v7"/></svg><svg width="16" height="16" viewBox="0 0 16 16"><path class="ic" d="M2 8h12M8 2v12"/></svg></span></div>
+</div>
+
+<!-- Program -->
+<div id="prog" class="panel" data-piece="prog">
+  <div class="tabs"><span class="on">节目: 序列 01</span><span class="menu">≡</span></div>
+  <div class="pic" data-piece="prog_pic">
+    <img class="fr" id="progFr" src="img/play/00.jpg">
+    <div class="gfx"><div class="t0">A WINTER ROAD TRIP</div><div class="t1" id="gfxT">INTO THE WHITE</div></div>
+    <div class="box" id="gbox"><i style="left:-4px;top:-4px"></i><i style="left:calc(50% - 3px);top:-4px"></i><i style="right:-4px;top:-4px"></i><i style="right:-4px;top:calc(50% - 3px)"></i><i style="right:-4px;bottom:-4px"></i><i style="left:calc(50% - 3px);bottom:-4px"></i><i style="left:-4px;bottom:-4px"></i><i style="left:-4px;top:calc(50% - 3px)"></i></div>
+    <div class="anchor" id="ganc"></div>
+  </div>
+  <div class="bar" data-piece="prog_bar"><span class="tcv num" id="progTc">00:00:12:14</span><span class="dd">适合 <svg width="8" height="6" viewBox="0 0 8 6"><path d="M1 1l3 3 3-3" stroke="#bbb" fill="none" stroke-width="1.3"/></svg></span>
+    <svg width="16" height="16" viewBox="0 0 16 16"><path class="ic" d="M3 8h10M8 3v10"/></svg>
+    <span style="margin-left:auto" class="dd">完整 <svg width="8" height="6" viewBox="0 0 8 6"><path d="M1 1l3 3 3-3" stroke="#bbb" fill="none" stroke-width="1.3"/></svg></span>
+    <svg width="16" height="16" viewBox="0 0 16 16"><path class="ic" d="M10.5 2.5a3.5 3.5 0 0 0-3.3 4.6L2.8 11.5l1.7 1.7 4.4-4.4A3.5 3.5 0 0 0 13.5 5.5L11.4 7.6 9.4 6.6 8.4 4.6z"/></svg>
+    <span class="num" style="color:#cfcfcf;font-size:12.5px">00:00:15:00</span></div>
+  <div class="scrub" data-piece="prog_scrub"><div class="tr"></div><div id="scrubTk"></div><div class="hd" id="scrubHd"></div></div>
+  <div class="tp" data-piece="prog_tp" id="transport"></div>
+</div>
+
+<!-- the right column -->
+<div id="side" class="panel" data-piece="side">
+  <div class="tabs"><span class="on">信息</span><span class="menu">≡</span></div>
+  <div class="info" data-piece="side_info">
+    <b>INTO THE WHITE</b>
+    <div class="kv"><span>类型:</span><span>图形</span></div>
+    <div class="kv"><span>开始:</span><span class="num">00:00:12:00</span></div>
+    <div class="kv"><span>结束:</span><span class="num">00:00:14:14</span></div>
+    <div class="kv"><span>持续时间:</span><span class="num">00:00:02:15</span></div>
+    <b style="margin-top:12px">序列 01</b>
+    <div class="kv"><span>当前:</span><span class="num" id="infoTc">00:00:12:14</span></div>
+    <div class="kv"><span>视频 3:</span><span class="num">00:00:00:14</span></div>
+    <div class="kv"><span>视频 2:</span><span></span></div>
+    <div class="kv"><span>视频 1:</span><span class="num">00:00:00:04</span></div>
+    <div class="kv"><span>音频 1:</span><span class="num">00:00:03:20</span></div>
+    <div class="kv"><span>音频 2:</span><span class="num">00:00:00:09</span></div>
+    <div class="kv"><span>音频 3:</span><span></span></div>
+  </div>
+  <div id="stacks"></div>
+</div>
+
+<!-- Project -->
+<div id="proj" class="panel" data-piece="proj">
+  <div class="tabs"><span class="on">项目: 冬日公路_v9</span><span class="menu">≡</span><span>媒体浏览器</span><span>库</span><span class="more">&gt;&gt;</span></div>
+  <div class="path" data-piece="proj_path"><span>冬日公路_v9.prproj</span><span>已选 1 项，共 47 项</span></div>
+  <div class="search" data-piece="proj_search"><svg width="12" height="12" viewBox="0 0 15 15"><circle cx="6" cy="6" r="4.6" fill="none" stroke="#777" stroke-width="1.6"/><path d="m9.6 9.6 4 4" stroke="#777" stroke-width="1.8" stroke-linecap="round"/></svg>搜索</div>
+  <div id="tiles" style="position:absolute;left:0;right:0;top:84px;bottom:29px;overflow:hidden"></div>
+  <div class="foot" data-piece="proj_foot" id="projFoot"></div>
+</div>
+
+<!-- Tools -->
+<div id="tools" class="panel" data-piece="tools"><div id="toolIcons"></div></div>
+
+<!-- Timeline -->
+<div id="tl" class="panel" data-piece="tl">
+  <div class="tabs"><span style="color:#8a8a8a">×</span><span class="on" style="margin-left:-10px">序列 01</span><span class="menu">≡</span><span>序列 01_v8</span><span>序列 01_v7_备份</span></div>
+  <div class="tcb num" data-piece="tl_tc" id="tlTc">00:00:12:14</div>
+  <div class="tbar" data-piece="tl_tbar" id="tbar"></div>
+  <div class="ruler" data-piece="tl_ruler" id="ruler"></div>
+  <div id="lanes"></div>
+  <div class="hsb" data-piece="tl_hsb"><div class="th"></div></div>
+  <div id="phh" data-piece="tl_ph" style="position:absolute;top:58px;width:13px;height:434px;margin-left:-6px"><div class="phh" style="top:0;left:0;margin-left:0"></div><div class="ph" id="ph" style="top:14px;height:420px;left:6px"></div></div>
+</div>
+
+<!-- Audio meters -->
+<div id="meter" class="panel" data-piece="meter">
+  <div class="bar" data-piece="meter_l" style="left:8px"><div class="lvl" id="lvlL" style="height:0"></div></div><div class="bar" data-piece="meter_r" style="left:18px"><div class="lvl" id="lvlR" style="height:0"></div></div>
+  <div class="sc" id="dbScale" data-piece="meter_db"></div>
+  <div class="ss" data-piece="meter_s0" style="left:9px">S</div><div class="ss" data-piece="meter_s1" style="left:19px">S</div>
+</div>
+
+<svg id="cur" class="abs" data-piece="cursor" viewBox="0 0 32 32"></svg>
+
+<script>
+/* ── everything below is a pure function of the state: setState(t) draws Premiere at second t of the shot ── */
+const $ = (s) => document.querySelector(s);
+const rnd = (i) => { const x = Math.sin(i * 127.1 + 311.7) * 43758.5453; return x - Math.floor(x); };
+const FPS = 30, FREEZE = 1.36;
+const tc = (s) => { const f = Math.round(s * FPS); const ff = f % FPS, ss = Math.floor(f / FPS) % 60, mm = Math.floor(f / FPS / 60); return `00:${String(mm).padStart(2, '0')}:${String(ss).padStart(2, '0')}:${String(ff).padStart(2, '0')}`; };
+const icon = (d, w = 16) => `<svg width="${w}" height="${w}" viewBox="0 0 16 16"><path class="ic" d="${d}"/></svg>`;
+
+/* Effect Controls rows: the selected title's every parameter */
+const ROWS = [
+  { id: 'r_video', sec: '视频' },
+  { id: 'r_motion', fx: '运动', open: true },
+  { id: 'r_pos', k: '位置', v: '960.0   712.0', sw: true, keys: [0.08, 0.36, 0.71], nav: true },
+  { id: 'r_scale', k: '缩放', v: '100.0', sw: true, keys: [0.08, 0.71], nav: true },
+  { id: 'r_scalew', k: '缩放宽度', v: '100.0', dim: true },
+  { id: 'r_uni', check: '等比缩放' },
+  { id: 'r_rot', k: '旋转', v: '0.0°', sw: false },
+  { id: 'r_anchor', k: '锚点', v: '960.0   540.0', sw: false },
+  { id: 'r_flick', k: '防闪烁滤镜', v: '0.00', sw: false },
+  { id: 'r_opfx', fx: '不透明度', open: true },
+  { id: 'r_mask', mask: true },
+  { id: 'r_op', k: '不透明度', v: '100.0 %', sw: true, keys: [0.08, 0.22, 0.86, 0.97], nav: true },
+  { id: 'r_blend', k: '混合模式', v: '正常', dd: true },
+  { id: 'r_time', fx: '时间重映射', open: false },
+  { id: 'r_text', fx: '文本 (INTO THE WHITE)', open: false },
+];
+const swatch = (on) => `<svg class="sw" viewBox="0 0 12 12"><circle cx="6" cy="6.5" r="4.6" fill="none" stroke="${on ? '#4b9cf5' : '#8c8c8c'}" stroke-width="1.2"/><path d="M6 4v2.6l1.6 1" stroke="${on ? '#4b9cf5' : '#8c8c8c'}" stroke-width="1.2" fill="none"/><path d="M4.6 1.2h2.8" stroke="${on ? '#4b9cf5' : '#8c8c8c'}" stroke-width="1.2"/></svg>`;
+$('#ecRows').innerHTML = ROWS.map((r, i) => {
+  const y = 58 + i * 25;
+  let inner = '';
+  if (r.sec) inner = `<span class="lab" style="padding-left:10px;font-weight:600;color:#e2e2e2">${r.sec}</span>`;
+  else if (r.fx) inner = `<span class="lab" style="padding-left:12px"><span style="color:#9a9a9a;font-size:9px">${r.open ? '▼' : '▶'}</span><span class="fx">fx</span><span style="color:#d6d6d6">${r.fx}</span></span><svg style="position:absolute;left:350px" width="14" height="14" viewBox="0 0 14 14"><path class="ic" d="M3 7a4 4 0 1 0 1.2-2.8M3 2.5v2.4h2.4"/></svg>`;
+  else if (r.check) inner = `<span class="lab" style="padding-left:112px"><svg width="12" height="12" viewBox="0 0 12 12"><rect x=".5" y=".5" width="11" height="11" rx="2" fill="#4b9cf5"/><path d="m3 6 2 2 4-4.5" stroke="#fff" stroke-width="1.5" fill="none"/></svg><span style="color:#c9c9c9">${r.check}</span></span>`;
+  else if (r.mask) inner = `<span class="lab" style="padding-left:44px;gap:10px">${icon('M8 3a5 5 0 1 0 .01 0z', 14)}${icon('M3 3h10v10H3z', 14)}${icon('M3 13 6 4l7 3-4 2z', 14)}</span>`;
+  else inner = `<span class="lab" style="padding-left:30px">${r.sw === undefined ? '<span style="width:12px"></span>' : swatch(r.sw)}<span style="width:92px;${r.dim ? 'color:#6f6f6f' : ''}">${r.k}</span></span><span class="val num" data-v="${r.id}" style="${r.dim ? 'color:#5a6f8a' : ''}">${r.v}${r.dd ? ' ▾' : ''}</span>${r.nav ? `<span class="nav"><span style="color:#8c8c8c;font-size:9px">◀</span><span style="width:8px;height:8px;transform:rotate(45deg);border:1px solid #9a9a9a;display:inline-block"></span><span style="color:#8c8c8c;font-size:9px">▶</span></span>` : ''}`;
+  const keys = (r.keys || []).map((k, j) => `<i class="kf${r.id === 'r_pos' && j === 1 ? ' sel' : ''}" style="left:${389 + k * 205}px"></i>`).join('');
+  return `<div class="row${r.sec ? ' sec' : ''}" data-piece="ec_${r.id}" style="top:${y}px">${inner}${keys}</div>`;
+}).join('');
+/* the mini timeline's ruler, clip bar and playhead (inside the panel's own background) */
+$('#ec .mini .ruler').innerHTML = Array.from({ length: 22 }, (_, i) => `<i style="position:absolute;left:${10 + i * 10}px;bottom:0;width:1px;height:${i % 5 ? 4 : 8}px;background:#4a4a4a"></i>`).join('') + `<span style="position:absolute;left:12px;top:3px;font-size:9.5px;color:#888" class="num">00:00:12:00</span><span style="position:absolute;left:150px;top:3px;font-size:9.5px;color:#888" class="num">00:00:14:00</span>`;
+$('#ec .mini').insertAdjacentHTML('beforeend', `<div class="clipbar">图形</div><div class="ph" id="ecPh"></div>`);
+
+/* transport */
+$('#transport').innerHTML = [
+  'M4 3h8v9l-4-3-4 3z', 'M5 3v10M5 3h4M5 13h4', 'M11 3v10M11 3H7M11 13H7', 'M3 3v10M13 3 6 8l7 5z', 'M4 3v10M12 3v10',
+].map((d) => icon(d)).join('') + `<svg id="playbtn" width="18" height="18" viewBox="0 0 16 16"><path id="playIcon" d="M4 2.5v11l9-5.5z" fill="#d8d8d8"/></svg>` + ['M4 3v10M12 3v10', 'M13 3v10M3 3l7 5-7 5z', 'M2 5h5v6H2zM9 5h5v6H9z', 'M2 5h12v6H2zM8 2v12', 'M2 4h12v9H2zM6 4 7 2h2l1 2M8 6.5a2.2 2.2 0 1 0 .01 0', 'M3 3h6v6H3zM7 7h6v6H7z'].map((d) => icon(d)).join('') + `<span style="margin-left:22px">${icon('M8 3v10M3 8h10')}</span>`;
+/* the scrub bar's ticks */
+$('#scrubTk').innerHTML = Array.from({ length: 64 }, (_, i) => `<i class="tk" style="left:${i * 15.2}px"></i>`).join('');
+
+/* the right column's other panels, stacked shut */
+$('#stacks').innerHTML = ['效果', '基本图形', '基本声音', 'Lumetri 颜色', '元数据', '标记', '历史记录', '事件', '时间码'].map((n, i) => `<div class="stack" data-piece="side_s${i}" style="top:${290 + i * 27}px">${n}</div>`).join('');
+
+/* project: icon view */
+const TILES = [
+  { n: 'snow-drive.mp4', im: 'img/snow-12.0.jpg', d: '00:14:15', c: 'var(--violet)' },
+  { n: 'winter.mp3', audio: true, d: '00:14:15', c: 'var(--forest)' },
+  { n: '序列 01', im: 'img/snow-3.0.jpg', d: '00:15:00', c: '#3a8f5e', seq: true },
+  { n: 'INTO THE WHITE', gfx: true, d: '00:02:15', c: 'var(--rose)' },
+  { n: '航拍_02.mp4', im: 'img/snow-6.0.jpg', d: '00:09:02', c: 'var(--cerulean)' },
+  { n: '142km_计数器.mogrt', gfx2: true, d: '00:03:00', c: 'var(--rose)' },
+  { n: '风声_03.wav', audio: true, d: '00:06:11', c: 'var(--caribbean)' },
+  { n: 'snow-drive_稳定.mp4', im: 'img/snow-9.0.jpg', d: '00:14:15', c: 'var(--violet)' },
+];
+const waveSvg = (w, h, seed, col) => { const n = Math.floor(w / 2.2); let d = ''; for (let k = 0; k < n; k++) { const a = 1 + Math.abs(Math.sin(k * 0.21 + seed) * Math.sin(k * 0.047 + seed * 2)) * h * 0.42 * (0.45 + rnd(seed * 31 + k)); d += `M${(k * 2.2 + 1).toFixed(1)} ${(h / 2 - a).toFixed(1)}V${(h / 2 + a).toFixed(1)}`; } return `<svg class="wave" width="${w}" height="${h}" viewBox="0 0 ${w} ${h}"><path d="${d}" stroke="${col}" stroke-width="1.2"/></svg>`; };
+$('#tiles').innerHTML = TILES.map((t, i) => {
+  const x = 10 + (i % 2) * 192, y = 4 + Math.floor(i / 2) * 128;
+  let th;
+  if (t.im) th = `<img src="${t.im}">`;
+  else if (t.audio) th = `<div style="position:absolute;inset:0;background:#163024"></div><div style="position:absolute;left:0;top:20px">${waveSvg(180, 60, i + 3, '#56d38a')}</div>`;
+  else if (t.gfx) th = `<div style="position:absolute;inset:0;background:#0d0d0d"></div><div style="position:absolute;left:12px;top:62px;font:900 17px/1 'Helvetica Neue',sans-serif;letter-spacing:-.5px;color:#fff">INTO THE WHITE</div>`;
+  else th = `<div style="position:absolute;inset:0;background:#0d0d0d"></div><div style="position:absolute;left:44px;top:30px;font:900 34px/1 'Helvetica Neue',sans-serif;color:#fff">142</div><div style="position:absolute;left:46px;top:66px;font:600 9px/1 Menlo,monospace;letter-spacing:3px;color:#aaa">KILOMETRES</div>`;
+  return `<div class="tile" data-piece="proj_t${i}" style="left:${x}px;top:${y}px"><div class="th">${th}<span class="dur num">${t.d}</span>${t.seq ? '<span class="badge" style="background:#3a8f5e"></span>' : ''}</div><div class="nm"><i style="background:${t.c}"></i>${t.n}</div></div>`;
+}).join('');
+$('#projFoot').innerHTML = ['M2 3h12M2 8h12M2 13h12', 'M2 2h5v5H2zM9 2h5v5H9zM2 9h5v5H2zM9 9h5v5H9z', 'M2 3h7v5H2zM6 9h8v5H6z'].map((d) => icon(d)).join('') + `<span style="width:70px;height:2px;background:#555;position:relative;margin-left:4px"><i style="position:absolute;left:30px;top:-4px;width:9px;height:9px;border-radius:50%;background:#bbb"></i></span>` + `<span style="margin-left:auto;display:flex;gap:12px">${['M2 4h5l1.5 1.5H14V13H2z', 'M3 2h10v12H3zM8 5v6M5 8h6', 'M4 4h8l-.8 10H4.8zM2.5 4h11M6 4V2.5h4V4'].map((d) => icon(d)).join('')}</span>`;
+
+/* tools */
+const TOOLS = [
+  ['sel', 'M4 2.5v10l3-3 2 4.2 1.6-.8-2-4.1h4z'], ['track', 'M5 3v10M8 5h5M8 8h5M8 11h5'], ['ripple', 'M4 3v10M4 8h9M10 5l3 3-3 3'], ['razor', 'M3.5 12.5 12.5 3.5M9 3.5l3.5 3.5M5 9.5l1.5 1.5'],
+  ['slip', 'M2 8h12M5 5 2 8l3 3M11 5l3 3-3 3'], ['pen', 'M3 13l1.5-4.5L11 2l3 3-6.5 6.5z'], ['rect', 'M3 4h10v8H3z'], ['hand', 'M5 8V4.5a1 1 0 0 1 2 0V8m0-4.5V3a1 1 0 0 1 2 0v5m0-4a1 1 0 0 1 2 0v4.5m0-3a1 1 0 0 1 2 0V10c0 2.5-1.8 4-4.3 4C7 14 5.8 13 4.8 11.5L3 8.8a1 1 0 0 1 1.6-1.2L5 8'], ['type', 'M3 3h10M8 3v10M6 13h4'],
+];
+$('#toolIcons').innerHTML = TOOLS.map(([id, d], i) => `<div class="t" data-piece="tool_${id}" data-tool="${id}" style="top:${8 + i * 32}px">${icon(d, 17)}</div>`).join('');
+
+/* timeline toolbar */
+$('#tbar').innerHTML = [['nest', 'M2 4h12v8H2zM5 7h6v3H5z', 0], ['snap', 'M4 2.5v5a4 4 0 0 0 8 0v-5M4 4.5h2.5M9.5 4.5H12', 1], ['link', 'M6.5 9.5l3-3M5.5 7 4 8.5a2.1 2.1 0 0 0 3 3L8.5 10M10.5 9 12 7.5a2.1 2.1 0 0 0-3-3L7.5 6', 1], ['mark', 'M4 3h8v9l-4-3-4 3z', 0], ['wrench', 'M10.5 2.5a3.5 3.5 0 0 0-3.3 4.6L2.8 11.5l1.7 1.7 4.4-4.4A3.5 3.5 0 0 0 13.5 5.5L11.4 7.6 9.4 6.6 8.4 4.6z', 0], ['cc', 'M2 4h12v8H2zM7 7a1.6 1.6 0 1 0 0 2M11.5 7a1.6 1.6 0 1 0 0 2', 0]]
+  .map(([id, d, on]) => `<div class="b${on ? ' on' : ''}">${icon(d, 15).replace('class="ic"', `class="ic" style="${on ? 'stroke:#7fb4ff' : ''}"`)}</div>`).join('');
+
+/* ── the sequence: 15 s in view from 6.0 s, 64 px a second ── */
+const T0 = 6.0, PPS = 63.5, LANE_X = 150, PH_T = 12.467;
+const LANES = [
+  { id: 'V3', h: 46, kind: 'gfx' }, { id: 'V2', h: 46, kind: 'broll' }, { id: 'V1', h: 64, kind: 'main' },
+  { id: 'A1', h: 60, kind: 'music' }, { id: 'A2', h: 46, kind: 'sfx' }, { id: 'A3', h: 46, kind: 'amb' },
+];
+const LANE_TOP = 88;
+let y = LANE_TOP; for (const l of LANES) { l.y = y; y += l.h; } const MIX_Y = y;
+const xOf = (s) => LANE_X + (s - T0) * PPS;
+/* the clips, in seconds (start, end); V1 is cut on every beat and then some */
+const CL = { V3: [], V2: [], V1: [], A1: [], A2: [], A3: [] };
+{ let s = 4.2, i = 0; while (s < 22) { const d = 0.35 + rnd(i * 7.7 + 1) * 1.15; CL.V1.push([s, s + d, i]); s += d; i++; } }
+CL.V3 = [[6.6, 8.4, 'A WINTER ROAD TRIP'], [9.1, 10.9, '142 km'], [12.0, 14.5, 'INTO THE WHITE'], [15.2, 16.6, '-18°C'], [17.3, 19.4, '字幕_03'], [20.0, 21.8, '片尾_v6']];
+CL.V2 = [[5.2, 6.9, 0], [8.0, 9.4, 1], [10.6, 11.4, 2], [13.1, 14.2, 3], [16.0, 17.9, 4], [19.1, 20.3, 5]];
+{ const cuts = [5.1, 7.42, 9.03, 11.24, 13.71, 15.86, 18.02, 20.6, 22]; let s = 3.0; cuts.forEach((c, i) => { CL.A1.push([s, c - 0.04, i]); s = c; }); }
+CL.A2 = [[6.1, 6.9], [7.6, 8.2], [9.4, 10.7], [11.9, 12.6], [13.3, 14.9], [16.4, 17.1], [18.6, 19.9], [20.8, 21.6]].map((c, i) => [...c, i]);
+CL.A3 = [[4.5, 8.9], [9.2, 13.0], [13.4, 17.6], [18.0, 22.0]].map((c, i) => [...c, i]);
+const COLOR = { V3: 'var(--rose)', V2: 'var(--cerulean)', V1: 'var(--violet)', A1: 'var(--forest)', A2: 'var(--caribbean)', A3: 'var(--mango)' };
+const NAME = { V2: '航拍_02.mp4', V1: 'snow-drive.mp4', A1: 'winter.mp3', A2: '风声_03.wav', A3: '车内环境.wav' };
+const TH = ['img/snow-12.0.jpg', 'img/snow-2.0.jpg', 'img/snow-3.0.jpg', 'img/snow-6.0.jpg', 'img/snow-9.0.jpg'];
+/* the four cuts the razor makes now, on V1 around the playhead */
+const CUTS = [0.14, 0.38, 0.62, 0.86].map((t, k) => ({ t, s: [11.62, 12.11, 12.83, 13.36][k] }));
+
+function v1Clips(nCuts) {
+  /* the V1 clips with the first nCuts razor cuts made: a cut splits the clip under it in two */
+  let out = CL.V1.map((c) => [...c]);
+  for (const c of CUTS.slice(0, nCuts)) {
+    const i = out.findIndex((k) => k[0] < c.s && k[1] > c.s);
+    if (i >= 0) { const k = out[i]; out.splice(i, 1, [k[0], c.s, k[2]], [c.s, k[1], `${k[2]}b${CUTS.indexOf(c)}`]); }
+  }
+  return out;
+}
+let builtCuts = -1;
+function buildTimeline(nCuts = 0) {
+  builtCuts = nCuts;
+  let h = '';
+  /* track headers */
+  for (const l of LANES) {
+    const v = l.id[0] === 'V';
+    h += `<div class="hdr" data-piece="tl_h${l.id}" style="top:${l.y}px;height:${l.h}px">
+      <span class="sp${l.id === 'V1' || l.id === 'A1' ? ' on' : ''}" style="${l.id === 'V1' || l.id === 'A1' ? '' : 'background:transparent'}">${l.id === 'V1' || l.id === 'A1' ? l.id : ''}</span>
+      ${icon('M4.5 7V5a3.5 3.5 0 0 1 7 0M3.5 7h9v6.5h-9z', 13)}
+      <span class="tg${l.id === 'V1' || l.id === 'A1' ? ' on' : ''}">${l.id}</span>
+      ${icon('M3 4h10v8H3zM3 8h10', 13)}
+      ${v ? icon('M1.5 8s2.5-4.5 6.5-4.5S14.5 8 14.5 8 12 12.5 8 12.5 1.5 8 1.5 8zM8 6a2 2 0 1 0 .01 0', 13) : `<span class="ms">M</span><span class="ms">S</span>${icon('M8 2.5a2 2 0 0 1 2 2V8a2 2 0 0 1-4 0V4.5a2 2 0 0 1 2-2zM4.5 8a3.5 3.5 0 0 0 7 0M8 11.5V14', 13)}`}
+    </div>`;
+    h += `<div class="lane" style="top:${l.y}px;height:${l.h}px"></div>`;
+  }
+  h += `<div class="hdr" style="top:${MIX_Y}px;height:28px;color:#bdbdbd" data-piece="tl_hMix">${icon('M4.5 7V5a3.5 3.5 0 0 1 7 0M3.5 7h9v6.5h-9z', 13)}<span style="margin-left:6px">主声道</span><span class="num" style="margin-left:14px;color:#5aa6ff">0.0</span></div>`;
+  h += `<div class="lane" style="top:${MIX_Y}px;height:28px;background:#1d1d1d"><i style="position:absolute;left:0;right:0;top:13px;height:1px;background:#3d3d3d"></i></div>`;
+  /* clips */
+  for (const l of LANES) {
+    for (const c of (l.id === 'V1' ? v1Clips(nCuts) : CL[l.id])) {
+      const x0 = Math.max(xOf(c[0]), LANE_X), x1 = Math.min(xOf(c[1]), 1100);
+      if (x1 - x0 < 3) continue;
+      const w = x1 - x0, top = l.y + 2, hh = l.h - 4, id = `c_${l.id}_${c[2] ?? c[0]}`;
+      const sel = l.id === 'V3' && c[2] === 'INTO THE WHITE';
+      let inner = '';
+      const name = l.id === 'V3' ? c[2] : NAME[l.id];
+      const thi = typeof c[2] === 'number' ? c[2] : parseInt(c[2]) + 3;
+      if (l.id === 'V1' || l.id === 'V2') inner = `<div class="thumb" style="width:${Math.min(w, hh * 1.4)}px;background-image:url(${TH[(thi + (l.id === 'V2' ? 2 : 0)) % TH.length]})"></div>`;
+      if (l.id[0] === 'A') inner = `<div style="position:absolute;left:0;top:15px">${waveSvg(w, hh - 15, (c[2] ?? 0) + LANES.indexOf(l) * 9, 'rgba(255,255,255,.55)')}</div>`;
+      const fx = l.id === 'V1' && typeof c[2] === 'number' && c[2] % 3 === 0 ? '<span class="fxb">fx</span>' : '';
+      h += `<div class="clip${sel ? ' sel' : ''}" data-piece="${id}" style="left:${x0}px;top:${top}px;width:${w}px;height:${hh}px;background:${COLOR[l.id]}${sel ? ';filter:brightness(1.18)' : ''}">${inner}<div class="nm">${name}</div>${fx}</div>`;
+    }
+  }
+  $('#lanes').innerHTML = h;
+  /* the vertical scrollbars */
+  $('#lanes').insertAdjacentHTML('beforeend', `<div class="vsb" data-piece="tl_vsb0" style="top:${LANE_TOP}px;height:${LANES[2].y + LANES[2].h - LANE_TOP}px"></div><div class="vsb" data-piece="tl_vsb1" style="top:${LANES[3].y}px;height:${MIX_Y - LANES[3].y}px"></div>`);
+  /* ruler */
+  let r = '';
+  for (let s = 6; s <= 21.6; s += 0.5) { const x = xOf(s) - LANE_X; const whole = Math.abs(s - Math.round(s)) < 1e-6; r += `<i class="tk" style="left:${x}px;height:${whole ? 8 : 4}px"></i>`; if (whole && Math.round(s) % 2 === 0) r += `<span class="lb num" style="left:${x + 3}px">${tc(s).slice(3)}</span>`; }
+  /* render bar: yellow for what needs a preview, red where it must render */
+  r += `<i class="rb" style="left:0;width:${xOf(11.9) - LANE_X}px;background:#c9b22c"></i><i class="rb" style="left:${xOf(11.9) - LANE_X}px;width:${xOf(14.6) - xOf(11.9)}px;background:#d0402e"></i><i class="rb" style="left:${xOf(14.6) - LANE_X}px;width:${(1114 - 14 - LANE_X) - (xOf(14.6) - LANE_X)}px;background:#c9b22c"></i>`;
+  $('#ruler').innerHTML = r;
+}
+buildTimeline();
+$('#phh').style.left = `${xOf(PH_T)}px`;
+/* audio meter scale */
+$('#dbScale').innerHTML = [0, -6, -12, -18, -24, -30, -36, -42, -48, -54].map((d, i) => `<span style="top:${(i / 9) * 100}%">${d}</span>`).join('') + '<span style="top:104%">dB</span>';
+
+/* ── 3:47, reviewing the cut: the sequence plays from 12.2 s; nobody touches anything; on 剪 (FREEZE) Premiere stops
+   answering. The mouse pointer rests on the Play-Stop toggle it was last clicked on. ── */
+const ARROW = '<path d="M5 3v21l5.6-5.2 3.5 8.3 3.6-1.5-3.5-8.1h7.6z" fill="#111" stroke="#fff" stroke-width="1.4" stroke-linejoin="round"/>';
+const SEQ0 = 12.2;
+const STOP = 'M3.5 3.5h9v9h-9z', PLAY = 'M4 2.5v11l9-5.5z';
+function setState(t, opts = {}) {
+  const T = Math.min(t, FREEZE);
+  const seqT = SEQ0 + T;
+  const tcs = tc(seqT);
+  for (const id of ['progTc', 'tlTc', 'ecTc', 'infoTc']) $('#' + id).textContent = tcs;
+  $('#progFr').src = `img/play/${String(Math.min(41, Math.round(T * 30))).padStart(2, '0')}.jpg`;
+  $('#phh').style.left = `${xOf(seqT)}px`;
+  $('#ecPh').style.left = `${10 + (seqT - 12.0) / 2.5 * 205}px`;
+  $('#scrubHd').style.left = `${(seqT / 15) * 964}px`;
+  $('#playIcon').setAttribute('d', STOP);
+  /* no selection box over the picture while it plays */
+  $('#gbox').style.display = 'none'; $('#ganc').style.display = 'none';
+  /* the meters move with the music, and hold where they were when everything stopped */
+  const lv = (ch) => { const k = Math.floor(T * 30); return Math.max(0.05, Math.min(0.92, 0.58 + 0.16 * Math.sin(k * 0.9 + ch) + 0.12 * Math.sin(k * 2.3 + ch * 3) + 0.08 * (rnd(k * 7 + ch) - 0.5))); };
+  $('#lvlL').style.height = `${lv(0) * 100}%`; $('#lvlR').style.height = `${lv(1) * 100}%`;
+  document.querySelectorAll('#toolIcons .t').forEach((e) => e.classList.toggle('on', e.dataset.tool === 'sel'));
+  /* the pointer, at rest on the Play-Stop toggle; once Premiere hangs, macOS shows its wait cursor there instead */
+  const cur = $('#cur');
+  if (opts.noCursor || t >= FREEZE) cur.style.display = 'none';
+  else {
+    const r = $('#playbtn').getBoundingClientRect();
+    cur.style.display = 'block'; cur.innerHTML = ARROW;
+    cur.style.left = `${r.left + r.width / 2 - 3}px`; cur.style.top = `${r.top + r.height / 2 - 1}px`;
+  }
+  return { seqT };
+}
+const playCentre = () => { const r = $('#playbtn').getBoundingClientRect(); return [r.left + r.width / 2, r.top + r.height / 2]; };
+window.pr = { setState, FREEZE, tc, playCentre };
+</script>
+</body>
+</html>

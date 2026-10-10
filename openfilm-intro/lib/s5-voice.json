@@ -1,0 +1,75 @@
+{
+  "about": "S5's voice (assets/audio/vo/l5-v3.mp3) cut at its pauses and laid out with room for what the hand does between: each line's place in s5.html (at, s) and its part of the file (from, to). film.html's l5-* voice clips, ui-rec/rec-s5.mjs, s5.html and s5-sound.py all read this.",
+  "src": "assets/audio/vo/l5-v3.mp3",
+  "vtt": "assets/audio/vo/l5-v3.vtt",
+  "duration": 18.2,
+  "lines": [
+    {
+      "at": 0.3,
+      "from": 0,
+      "to": 1.35,
+      "says": "做完哪里不满意？"
+    },
+    {
+      "at": 1.75,
+      "from": 1.35,
+      "to": 2.83,
+      "says": "点一下就能改："
+    },
+    {
+      "at": 3.35,
+      "from": 2.83,
+      "to": 3.51,
+      "says": "位置、"
+    },
+    {
+      "at": 4.25,
+      "from": 3.51,
+      "to": 4.07,
+      "says": "大小、"
+    },
+    {
+      "at": 5.05,
+      "from": 4.07,
+      "to": 4.78,
+      "says": "旋转、"
+    },
+    {
+      "at": 6.05,
+      "from": 4.78,
+      "to": 5.51,
+      "says": "颜色，"
+    },
+    {
+      "at": 7.25,
+      "from": 5.51,
+      "to": 7.53,
+      "says": "更多属性都在右边。"
+    },
+    {
+      "at": 9.65,
+      "from": 7.53,
+      "to": 8.56,
+      "says": "不只是文字，"
+    },
+    {
+      "at": 10.85,
+      "from": 8.56,
+      "to": 10.56,
+      "says": "图形、视频也一样。"
+    },
+    {
+      "at": 13.25,
+      "from": 10.56,
+      "to": 13.19,
+      "says": "说不清的地方，框起来告诉Agent，"
+    },
+    {
+      "at": 16.3,
+      "from": 13.19,
+      "to": 14.08,
+      "says": "它来改。"
+    }
+  ],
+  "sun": 16.53
+}

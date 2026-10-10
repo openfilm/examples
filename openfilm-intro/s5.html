@@ -1,0 +1,83 @@
+<!doctype html>
+<html lang="zh">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=1920, height=1080">
+<title>S5 — click anything, change anything</title>
+<link rel="stylesheet" href="lib/shared.css">
+<style>
+  /* The desktop app, dark, with the trailer from line 1 made in it (launch-film/winter-trip): recorded a frame at a time
+     on S5's voice as lib/s5-voice.json lays it out by ui-rec/rec-s5.mjs — assets/video/s5-ui.mp4, its 1600 × 1000 window
+     at 2×. This page is the camera on it, every pose with the picture whole in it: the whole window; the picture and
+     the inspector for the title's edits; a little lower for the colour picker under its swatch and the inspector rolling
+     down; Layers too for the footage; the conversation for the box; the window whole again as the agent answers, so the
+     sun, its new track and the answer are all in view. */
+  #bg { position: absolute; inset: 0; background: #0b0b0c; }
+  #ui { position: absolute; left: 0; top: 0; width: 1600px; height: 1000px; transform-origin: 0 0; border-radius: 12px; overflow: hidden;
+        box-shadow: 0 0 0 1px rgba(255,255,255,.12), 0 40px 120px rgba(0,0,0,.6); }
+  #ui video { width: 1600px; height: 1000px; display: block; }
+  #black { position: absolute; inset: 0; background: #000; }
+</style>
+</head>
+<body>
+<div id="bg"></div>
+<div id="ui"><video id="rec" src="assets/video/s5-ui.mp4" muted playsinline preload="auto"></video></div>
+<div id="black"></div>
+<script type="module">
+import { lerp, prog, inout } from './lib/ease.js';
+let W = null, DUR = 18.2;
+/* when, from the line's own word timing (assets/audio/vo/l5-v3.vtt), each line where lib/s5-voice.json lays it */
+async function words() {
+  const V = await (await fetch('lib/s5-voice.json')).json(); DUR = V.duration;
+  const raw = await (await fetch(V.vtt)).text(); const chars = [];
+  const sec = (h, m, x) => +h * 3600 + +m * 60 + +x;
+  for (const cue of raw.split(/\n\n+/)) {
+    const m = cue.match(/(\d\d):(\d\d):(\d\d\.\d+) --> (\d\d):(\d\d):(\d\d\.\d+)\n([\s\S]+)/);
+    if (!m) continue;
+    let t = sec(m[1], m[2], m[3]);
+    for (const part of m[7].split(/(<\d\d:\d\d:\d\d\.\d+>)/)) {
+      const tag = part.match(/<(\d\d):(\d\d):(\d\d\.\d+)>/);
+      if (tag) { t = sec(tag[1], tag[2], tag[3]); continue; }
+      for (const ch of part) if (/\S/.test(ch)) chars.push([ch, t]);
+    }
+  }
+  const text = chars.map((c) => c[0]).join('');
+  const said = (w) => { const c = chars[text.indexOf(w)][1]; const l = V.lines.find((x) => c + 0.05 >= x.from && c + 0.05 < x.to) ?? V.lines.at(-1); return l.at + (c - l.from); };
+  W = { click: said('点一下'), color: said('颜色'), video: said('视频'), vague: said('说不清'), fix: said('它来改') };
+}
+/* the camera: where it looks in the window (css px of the recording) and how wide, eased from pose to pose */
+const POSE = {
+  all: [800, 500, 1920],                 /* the whole window: the picture, the inspector, the conversation */
+  edit: [722, 440, 1060],                /* the picture and the inspector */
+  color: [722, 492, 1100],               /* the same, lower: the colour picker opens under the swatch */
+  layers: [640, 478, 1180],              /* Layers, the picture and the inspector: the footage picked */
+  ask: [900, 560, 1460],                 /* the picture and the conversation: the box, the ask */
+  whole: [800, 515, 1700],               /* the window whole: the sun, its new track, the answer */
+};
+function camera(t) {
+  const keys = [[0, POSE.all], [0.4, POSE.all], [1.55, POSE.edit], [W.color - 0.55, POSE.edit], [W.color - 0.05, POSE.color],
+    [W.video - 0.45, POSE.color], [W.video - 0.02, POSE.layers], [W.vague - 0.1, POSE.layers], [W.vague + 0.7, POSE.ask],
+    [W.fix - 0.15, POSE.ask], [W.fix + 0.6, POSE.whole], [DUR, POSE.whole]];
+  let i = 0; while (i + 1 < keys.length && t >= keys[i + 1][0]) i++;
+  const [a0, p0] = keys[i], [a1, p1] = keys[Math.min(i + 1, keys.length - 1)];
+  const k = a1 > a0 ? inout(prog(t, a0, a1)) : 1;
+  /* the width eased in log space: a zoom reads even, not fast at one end */
+  return [lerp(p0[0], p1[0], k), lerp(p0[1], p1[1], k), Math.exp(lerp(Math.log(p0[2]), Math.log(p1[2]), k))];
+}
+const seekTo = (v, s) => new Promise((ok) => {
+  const want = Math.min((v.duration || 99) - 0.02, Math.max(0, s));
+  const go = () => { if (!v.seeking && v.readyState >= 2 && Math.abs(v.currentTime - want) < 0.002) return ok(); v.addEventListener('seeked', go, { once: true }); if (Math.abs(v.currentTime - want) >= 0.002) v.currentTime = want; };
+  go();
+});
+function frame(t) {
+  const [cx, cy, w] = camera(t), s = 1920 / w;
+  document.getElementById('ui').style.transform = `translate(${960 - cx * s}px, ${540 - cy * s}px) scale(${s})`;
+  document.getElementById('black').style.opacity = String(1 - prog(t, 0.0, 0.45) + prog(t, DUR - 0.3, DUR - 0.04));   /* out of S4's dark, into S6's */
+  return seekTo(document.getElementById('rec'), Math.floor(t * 30 + 1e-6) / 30 + 0.5 / 30);
+}
+const loaded = (v) => new Promise((ok) => { if (v.readyState >= 2) ok(); else { v.addEventListener('loadeddata', ok, { once: true }); v.addEventListener('error', ok, { once: true }); } });
+const ready = Promise.all([words(), loaded(document.getElementById('rec'))]);
+window.film = { get duration() { return DUR; }, ready, frame };
+</script>
+</body>
+</html>

@@ -1,0 +1,579 @@
+<!doctype html>
+<html lang="zh">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=1920, height=1080">
+<title>S7 — made with it, yours to try, see you</title>
+<link rel="stylesheet" href="lib/shared.css">
+<style>
+  /* The close, on the line's words (assets/audio/vo/l7-v5.vtt) and the outro's bars (112 BPM), one move from end to
+     end: this very film rewinding in the app (ui-rec/rec-s7.mjs); a command, or the app (its window folds into its
+     icon); ideas people sit on, handwritten, each turning into a film made with it; those films are today's clips on a
+     timeline that keeps going; follow (a shareholder's certificate, free) and the triple tap that fills in the next
+     version; the comments, the most liked stamped 就剪它; see you. */
+  @font-face { font-family: 'Hand'; src: local('HannotateSC-W5'), local('Hannotate SC Regular'); font-weight: 400; }
+  @font-face { font-family: 'Hand'; src: local('HannotateSC-W7'), local('Hannotate SC Bold'); font-weight: 700; }
+  @font-face { font-family: 'Kai'; src: local('STKaitiSC-Bold'), local('Kaiti SC Bold'); font-weight: 700; }
+  @font-face { font-family: 'Kai'; src: local('STKaitiSC-Black'), local('Kaiti SC Black'); font-weight: 900; }
+  #bg { position: absolute; inset: 0; background: radial-gradient(75% 70% at 50% 44%, #1c1916 0%, #0e0d0c 52%, #050505 100%); }
+  canvas.full { position: absolute; left: 0; top: 0; width: 1920px; height: 1080px; pointer-events: none; }
+  #grain { mix-blend-mode: overlay; opacity: .09; }
+  #vig { position: absolute; inset: 0; background: radial-gradient(85% 80% at 50% 48%, transparent 58%, rgba(0,0,0,.5) 100%); }
+  #black { position: absolute; inset: 0; background: #000; }
+  .abs { position: absolute; left: 0; top: 0; }
+  .glass { background: linear-gradient(180deg, #242327 0%, #18181b 100%); box-shadow: inset 0 1px 0 rgba(255,255,255,.07), 0 0 0 1px rgba(255,255,255,.08), 0 40px 100px rgba(0,0,0,.55); }
+  .paper { background:
+      url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='220' height='220'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.85' numOctaves='3' stitchTiles='stitch'/%3E%3CfeColorMatrix values='0 0 0 0 .32 0 0 0 0 .25 0 0 0 0 .17 0 0 0 .11 0'/%3E%3C/filter%3E%3Crect width='220' height='220' filter='url(%23n)'/%3E%3C/svg%3E"),
+      linear-gradient(158deg, #f8f2e4 0%, #efe4cd 62%, #e6d7bb 100%); }
+
+  /* A · this film, open in the app */
+  #win { width: 1600px; height: 1000px; border-radius: 12px; overflow: hidden; transform-origin: 0 0; background: #111;
+         box-shadow: 0 0 0 1px rgba(255,255,255,.12), 0 60px 140px rgba(0,0,0,.7); }
+  #win video { width: 1600px; height: 1000px; display: block; }
+
+  /* C · a command, or the app */
+  #term, #cap1, #icon, #dl, #cap2 { z-index: 5; }
+  #term { left: 90px; top: 352px; width: 880px; height: 290px; border-radius: 22px; overflow: hidden; }
+  #term .tb { position: relative; height: 54px; display: flex; align-items: center; gap: 10px; padding: 0 22px; background: rgba(255,255,255,.025); border-bottom: 1px solid rgba(255,255,255,.06); }
+  #term .tb i { width: 14px; height: 14px; border-radius: 50%; }
+  #term .tb span { position: absolute; left: 0; right: 0; text-align: center; font: 500 19px/54px Geist, sans-serif; color: rgba(246,244,240,.42); }
+  #cmdl { position: absolute; left: 46px; top: 112px; white-space: nowrap; font: 500 37px/1 'Geist Mono', monospace; color: #f6f4f0; }
+  #cmdl .p { color: #d97757; margin-right: 20px; }
+  .car { display: inline-block; width: 4px; height: 42px; background: #f6f4f0; vertical-align: -7px; margin-left: 4px; }
+  #okl { position: absolute; left: 46px; top: 196px; white-space: nowrap; font: 500 29px/1 'Noto Sans SC', sans-serif; color: #74d99f; }
+  .cap { font: 500 27px/1 'Noto Sans SC', sans-serif; color: rgba(246,244,240,.5); white-space: nowrap; }
+  #icon { width: 230px; height: 230px; }
+  #dl { height: 86px; padding: 0 46px; border-radius: 43px; display: flex; align-items: center; background: #f6f4f0; color: #121212; white-space: nowrap; overflow: hidden;
+        font: 700 33px/1 'Noto Sans SC', sans-serif; box-shadow: 0 20px 50px rgba(0,0,0,.45); }
+  #dl .fill { position: absolute; left: 0; top: 0; bottom: 0; width: 0; background: #ffd9c9; }
+  #dl .lab { position: relative; display: flex; align-items: center; gap: 14px; }
+
+  /* D · ideas, written down; turned over, films */
+  #ideas { position: absolute; inset: 0; perspective: 1200px; perspective-origin: 960px 540px; transform-style: preserve-3d; }
+  .card { position: absolute; left: 768px; top: 432px; width: 384px; height: 216px; transform-style: preserve-3d; }
+  .card .f, .card .b { position: absolute; inset: 0; border-radius: 10px; backface-visibility: hidden; }
+  .card .f { padding: 34px 34px 0; font: 400 37px/1.4 Hand, Kai, sans-serif; color: #2a241f; box-shadow: 0 22px 44px rgba(0,0,0,.5), inset 0 0 0 1px rgba(255,255,255,.35); }
+  .card .f::before { content: ''; position: absolute; left: 22px; right: 22px; top: 32px; height: 104px;
+                     background: repeating-linear-gradient(180deg, transparent 0 50px, rgba(74,108,160,.2) 50px 52px); }
+  .card .f .tape { position: absolute; left: 50%; top: -15px; width: 118px; height: 32px; margin-left: -59px; background: rgba(250,244,228,.6); box-shadow: 0 1px 3px rgba(0,0,0,.2); }
+  .card .f span { position: relative; display: block; white-space: nowrap; }
+  .card .b { transform: rotateY(180deg); overflow: hidden; background: #000; box-shadow: 0 0 0 1px rgba(255,255,255,.16), 0 0 46px rgba(255,186,120,.22), 0 22px 50px rgba(0,0,0,.55); }
+  .card .b video, .card .b img { width: 100%; height: 100%; object-fit: cover; display: block; }
+
+  /* E · today's clips, and the ones to come */
+  #tl { width: 1920px; height: 1080px; transform-origin: 0 0; }
+  #rail { left: 120px; top: 488px; width: 3800px; height: 104px; border-radius: 18px; background: rgba(255,255,255,.04); box-shadow: inset 0 0 0 1px rgba(255,255,255,.07); transform-origin: 0 50%; }
+  #ver { left: 150px; top: 416px; display: flex; align-items: center; gap: 14px; white-space: nowrap; font: 500 25px/1 'Noto Sans SC', sans-serif; color: rgba(246,244,240,.62); transform-origin: 0 50%; }
+  #ver b { font: 600 23px/1 'Geist Mono', monospace; color: #141414; background: #f6f4f0; padding: 8px 13px; border-radius: 10px; }
+  .ghost { position: absolute; top: 504px; height: 72px; border-radius: 10px; border: 2px dashed rgba(246,244,240,.34); overflow: hidden; transform-origin: 0 50%; }
+  .ghost .fl { position: absolute; left: 0; top: 0; bottom: 0; width: 0; background: linear-gradient(90deg, #e45a3a, #ff8d5f); }
+  .ghost span { position: absolute; left: 18px; top: 0; font: 600 24px/68px 'Geist Mono', monospace; color: rgba(246,244,240,.5); }
+  #ph svg { position: absolute; left: -24px; top: 436px; filter: drop-shadow(0 3px 8px rgba(0,0,0,.5)); }
+  #ph i { position: absolute; left: -2.5px; top: 476px; width: 5px; height: 132px; border-radius: 3px; background: #f6f4f0; box-shadow: 0 0 14px rgba(246,244,240,.35); }
+  #night { height: 46px; padding: 0 18px; border-radius: 22px; display: flex; align-items: center; gap: 10px; white-space: nowrap; background: rgba(20,22,34,.92);
+           box-shadow: inset 0 0 0 1px rgba(150,170,255,.28); font: 600 21px/1 'Geist Mono', 'Noto Sans SC', monospace; color: #c9d2ff; transform-origin: 0 50%; }
+
+  /* F · follow: free shares; the triple tap */
+  #follow { height: 104px; padding: 0 64px; border-radius: 52px; display: flex; align-items: center; gap: 14px; white-space: nowrap; font: 800 44px/1 'Noto Sans SC', sans-serif; }
+  #ripple { width: 300px; height: 300px; margin: -150px 0 0 -150px; border-radius: 50%; box-shadow: inset 0 0 0 4px rgba(255,140,100,.8); }
+  #cert { width: 920px; height: 480px; border-radius: 6px; box-shadow: 0 40px 90px rgba(0,0,0,.6); transform-origin: 50% 50%; }
+  #cert .fr { position: absolute; inset: 18px; border: 3px solid #b3261e; box-shadow: inset 0 0 0 5px #f4ecdb, inset 0 0 0 6.5px #b3261e; }
+  #cert .hd { position: absolute; left: 0; right: 0; top: 60px; text-align: center; font: 900 60px/1 Kai, serif; letter-spacing: .14em; color: #8f1d16; }
+  #cert .no { position: absolute; right: 64px; top: 46px; font: 600 21px/1 'Geist Mono', monospace; color: rgba(143,29,22,.75); }
+  #cert .rw { position: absolute; left: 110px; display: flex; align-items: baseline; gap: 28px; font: 700 35px/1 Kai, serif; white-space: nowrap; }
+  #cert .rw b { font-weight: 700; color: #7a6552; width: 150px; text-align: justify; text-align-last: justify; }
+  #cert .rw span { color: #231d18; padding: 0 6px 8px; border-bottom: 2px dotted rgba(60,45,35,.35); min-width: 300px; }
+  #cert .sig { position: absolute; left: 110px; bottom: 50px; font: 400 26px/1 Hand, Kai, sans-serif; color: rgba(42,36,31,.6); }
+  #seal { position: absolute; left: 650px; top: 236px; width: 210px; height: 210px; transform-origin: 50% 50%; }
+  .tbtn { width: 164px; height: 164px; margin: -82px 0 0 -82px; border-radius: 50%; display: flex; align-items: center; justify-content: center; }
+  .tbtn .rg { position: absolute; left: -12px; top: -12px; width: 188px; height: 188px; transform: rotate(-90deg); }
+  .tbtn .ic { width: 76px; height: 76px; }
+  .tbtn .lb { position: absolute; left: 0; right: 0; top: 196px; text-align: center; font: 600 27px/1 'Noto Sans SC', sans-serif; color: rgba(246,244,240,.62); }
+
+  /* G, H · what you'd have it make; the comments */
+  #ask { font: 700 76px/1 Hand, Kai, sans-serif; color: #f6f4f0; white-space: nowrap; }
+  #cpanel { width: 1180px; height: 660px; border-radius: 28px; overflow: hidden; }
+  #cpanel .hd { position: absolute; left: 36px; right: 36px; top: 0; height: 76px; display: flex; align-items: center; gap: 14px; border-bottom: 1px solid rgba(255,255,255,.07);
+                font: 600 25px/1 'Noto Sans SC', sans-serif; color: #f6f4f0; }
+  #cpanel .hd small { font: 500 21px/1 'Geist Mono', monospace; color: rgba(246,244,240,.45); }
+  #cpanel .hd .sort { margin-left: auto; font: 500 21px/1 'Noto Sans SC', sans-serif; color: rgba(246,244,240,.6); }
+  #cpanel .hd .sort b { color: #f6f4f0; font-weight: 600; }
+  #clist { position: absolute; left: 0; right: 0; top: 76px; height: 476px; overflow: hidden; }
+  .cm { position: absolute; left: 36px; right: 36px; top: 0; height: 112px; display: flex; align-items: center; gap: 22px; border-radius: 18px; padding: 0 22px; }
+  .cm .who { display: flex; flex-direction: column; gap: 12px; flex: 1; min-width: 0; }
+  .cm .nm { display: flex; align-items: center; gap: 12px; font: 600 22px/1 'Noto Sans SC', sans-serif; color: rgba(246,244,240,.62); white-space: nowrap; }
+  .cm .nm small { font-size: 20px; font-weight: 400; color: rgba(246,244,240,.34); }
+  .cm .nm i { font-style: normal; font: 600 18px/1 'Noto Sans SC', sans-serif; color: #ffb38f; background: rgba(255,132,88,.16); padding: 5px 10px; border-radius: 8px; }
+  .cm .tx { font: 500 29px/1.15 'Noto Sans SC', sans-serif; color: #f6f4f0; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .cm .lk { position: relative; display: flex; align-items: center; justify-content: flex-end; gap: 11px; min-width: 150px; flex: none; font: 600 26px/1 'Geist Mono', monospace; color: rgba(246,244,240,.7); }
+  .av { width: 60px; height: 60px; border-radius: 50%; flex: none; display: flex; align-items: center; justify-content: center; font: 700 26px/1 'Noto Sans SC', sans-serif; color: #fff; }
+  #ccomp { position: absolute; left: 36px; right: 36px; bottom: 26px; height: 82px; border-radius: 41px; display: flex; align-items: center; gap: 18px; padding: 0 12px 0 14px;
+           background: rgba(255,255,255,.06); box-shadow: inset 0 0 0 1px rgba(255,255,255,.1); }
+  #ccomp .av { width: 54px; height: 54px; font-size: 24px; }
+  #ctext { flex: 1; min-width: 0; font: 500 28px/1.35 'Noto Sans SC', sans-serif; color: #f6f4f0; white-space: nowrap; overflow: hidden; }
+  #ctext .ph { color: rgba(246,244,240,.36); }
+  #ctext .car { height: 32px; vertical-align: -7px; }
+  #send { height: 58px; padding: 0 26px; border-radius: 29px; background: rgba(255,255,255,.12); display: flex; align-items: center; gap: 8px; flex: none; font: 600 24px/1 'Noto Sans SC', sans-serif; color: rgba(246,244,240,.55); }
+  #stamp { width: 220px; height: 108px; margin: -54px 0 0 -110px; transform-origin: 50% 50%; }
+
+  /* I · see you */
+  #logo { width: 600px; }
+  #bye { font: 700 156px/1 Hand, Kai, sans-serif; color: #f6f4f0; white-space: nowrap; }
+  #links { display: flex; align-items: center; gap: 56px; white-space: nowrap; font: 500 28px/1 'Geist Mono', monospace; color: rgba(246,244,240,.56); }
+  #links span { display: flex; align-items: center; gap: 14px; }
+  #sweep { width: 600px; height: 126px; -webkit-mask: url(lib/logo-dark.svg) center / contain no-repeat; mask: url(lib/logo-dark.svg) center / contain no-repeat; }
+  #cur { width: 46px; height: 46px; filter: drop-shadow(0 4px 8px rgba(0,0,0,.55)); transform-origin: 6px 4px; }
+</style>
+</head>
+<body>
+<div id="bg"></div>
+<canvas class="full" id="motes" width="1920" height="1080"></canvas>
+
+<div class="abs" id="win"><video id="rec" src="assets/video/s7-ui.mp4" muted playsinline preload="auto"></video></div>
+
+<div class="abs glass" id="term">
+  <div class="tb"><i style="background:#ff5f57"></i><i style="background:#febc2e"></i><i style="background:#28c840"></i><span>Terminal</span></div>
+  <div id="cmdl"><span class="p">$</span><span id="typed"></span><span class="car" id="car1"></span></div>
+  <div id="okl">✓ 装好了 · 跟你的 Agent 说想做什么视频</div>
+</div>
+<div class="abs cap" id="cap1">装进你的 Agent，一行就够</div>
+<img class="abs" id="icon" src="assets/image/of-icon.png">
+<div class="abs" id="dl"><div class="fill"></div><div class="lab"><svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3.5v11.5M6.5 9.8 12 15.3l5.5-5.5M4.5 20h15"/></svg><span id="dlt">下载客户端</span></div></div>
+<div class="abs cap" id="cap2">macOS · Windows</div>
+
+<div id="ideas"></div>
+
+<div class="abs" id="tl">
+  <div class="abs" id="rail"></div>
+  <div class="abs" id="ver"><b>v0.1</b>今天</div>
+  <div class="abs" id="ghosts"></div>
+  <div class="abs" id="ph"><svg width="48" height="46" viewBox="14 12 26 25"><path d="M17 12H37Q40 12 40 15V27Q40 29 38.5 30.5L31 37H23L15.5 30.5Q14 29 14 27V15Q14 12 17 12Z" fill="#f6f4f0"/></svg><i></i></div>
+</div>
+
+<div class="abs" id="night"><svg width="20" height="20" viewBox="0 0 24 24" fill="#c9d2ff"><path d="M20 14.5A8.5 8.5 0 0 1 9.5 4a8.5 8.5 0 1 0 10.5 10.5Z"/></svg>凌晨 3:00</div>
+<div class="abs" id="ripple"></div>
+<div class="abs" id="follow"></div>
+<div class="abs paper" id="cert">
+  <div class="fr"></div>
+  <div class="no">No. 000001</div>
+  <div class="hd">早期股东证</div>
+  <div class="rw" style="top:182px"><b>持股人</b><span>屏幕前的你</span></div>
+  <div class="rw" style="top:250px"><b>入股金额</b><span>¥ 0.00</span></div>
+  <div class="rw" style="top:318px"><b>入股方式</b><span>点了一下关注</span></div>
+  <div class="sig">OpenFilm · 2026 年 10 月</div>
+  <svg id="seal" viewBox="0 0 200 200">
+    <defs>
+      <filter id="ink" x="-10%" y="-10%" width="120%" height="120%"><feTurbulence type="fractalNoise" baseFrequency="1.1" numOctaves="2" seed="7" result="n"/>
+        <feColorMatrix in="n" values="0 0 0 0 0  0 0 0 0 0  0 0 0 0 0  0 0 0 -2.4 1.75" result="m"/><feComposite in="SourceGraphic" in2="m" operator="in"/></filter>
+      <path id="arc" d="M46.3 131A62 62 0 1 1 153.7 131"/>
+    </defs>
+    <g filter="url(#ink)" fill="#d6372a">
+      <circle cx="100" cy="100" r="88" fill="none" stroke="#d6372a" stroke-width="7"/>
+      <text font-family="Kai" font-weight="900" font-size="21" letter-spacing="2"><textPath href="#arc" startOffset="50%" text-anchor="middle">OPENFILM · 入股专用章</textPath></text>
+      <path d="M100 70L106.5 89.1L126.6 89.4L110.5 101.4L116.5 120.6L100 109L83.5 120.6L89.5 101.4L73.4 89.4L93.5 89.1Z"/>
+      <text x="100" y="158" text-anchor="middle" font-family="Kai" font-weight="900" font-size="25" letter-spacing="4">已入股</text>
+    </g>
+  </svg>
+</div>
+<div class="abs glass tbtn" id="t0"><svg class="rg" viewBox="0 0 188 188"><circle cx="94" cy="94" r="88" fill="none" stroke="#ff8458" stroke-width="6" stroke-linecap="round" stroke-dasharray="553" stroke-dashoffset="553"/></svg>
+  <svg class="ic" viewBox="0 0 24 24"><path d="M2.5 10.2h3.6v10.6H2.5zM8.3 10.2l4.1-7.1c.5-.8 1.6-1 2.3-.3.5.5.7 1.2.5 1.9l-1.1 4.4h5.3c1.4 0 2.4 1.3 2 2.7l-2 7.2c-.3 1.1-1.3 1.8-2.4 1.8H8.3Z" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linejoin="round"/></svg><div class="lb">点赞</div></div>
+<div class="abs glass tbtn" id="t1"><svg class="rg" viewBox="0 0 188 188"><circle cx="94" cy="94" r="88" fill="none" stroke="#ff8458" stroke-width="6" stroke-linecap="round" stroke-dasharray="553" stroke-dashoffset="553"/></svg>
+  <svg class="ic" viewBox="0 0 24 24"><circle cx="12" cy="12" r="9.3" fill="none" stroke="currentColor" stroke-width="1.7"/><path d="M8.9 7.6 12 11.6l3.1-4M12 11.6v5.6M9.2 12.9h5.6M9.2 15.4h5.6" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"/></svg><div class="lb">投币</div></div>
+<div class="abs glass tbtn" id="t2"><svg class="rg" viewBox="0 0 188 188"><circle cx="94" cy="94" r="88" fill="none" stroke="#ff8458" stroke-width="6" stroke-linecap="round" stroke-dasharray="553" stroke-dashoffset="553"/></svg>
+  <svg class="ic" viewBox="0 0 24 24"><path d="M12 2.8l2.8 5.8 6.4.9-4.6 4.5 1.1 6.3L12 17.3l-5.7 3 1.1-6.3-4.6-4.5 6.4-.9Z" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linejoin="round"/></svg><div class="lb">收藏</div></div>
+
+<div class="abs" id="ask">你最想让它剪什么？</div>
+<div class="abs glass" id="cpanel">
+  <div class="hd">评论<small id="ccount">1,286</small><span class="sort"><b>最热</b> · 最新</span></div>
+  <div id="clist"></div>
+  <div id="ccomp"><div class="av" style="background:linear-gradient(140deg,#ff9a6b,#e2533a)">你</div><div id="ctext"></div><div id="send">发送</div></div>
+</div>
+<svg class="abs" id="stamp" viewBox="0 0 220 108">
+  <defs><filter id="ink2" x="-5%" y="-10%" width="110%" height="120%"><feTurbulence type="fractalNoise" baseFrequency=".9" numOctaves="2" seed="11" result="n"/>
+    <feColorMatrix in="n" values="0 0 0 0 0  0 0 0 0 0  0 0 0 0 0  0 0 0 -2.2 1.7" result="m"/><feComposite in="SourceGraphic" in2="m" operator="in"/></filter></defs>
+  <g filter="url(#ink2)"><rect x="6" y="6" width="208" height="96" rx="14" fill="none" stroke="#e0402f" stroke-width="7"/>
+    <text x="114" y="73" text-anchor="middle" font-family="Kai" font-weight="900" font-size="58" letter-spacing="8" fill="#e0402f">就剪它</text></g>
+</svg>
+
+<img class="abs" id="logo" src="lib/logo-dark.svg">
+<div class="abs" id="sweep"></div>
+<div class="abs" id="bye">下期见</div>
+<div class="abs" id="links"><span><svg width="30" height="30" viewBox="0 0 16 16" fill="currentColor"><path d="M8 0C3.58 0 0 3.58 0 8c0 3.54 2.290 6.53 5.47 7.59.4.07.55-.17.55-.38 0-.19-.01-.82-.01-1.49-2.01.37-2.53-.49-2.69-.94-.09-.23-.48-.94-.82-1.13-.28-.15-.68-.52-.01-.53.63-.01 1.08.58 1.23.82.72 1.21 1.87.87 2.33.66.07-.52.28-.87.51-1.07-1.78-.2-3.640-.89-3.640-3.95 0-.87.31-1.59.82-2.15-.08-.2-.36-1.02.08-2.12 0 0 .67-.21 2.2.82.64-.18 1.32-.27 2-.27.68 0 1.36.09 2 .27 1.53-1.04 2.2-.82 2.2-.82.44 1.1.16 1.92.08 2.12.51.56.82 1.27.82 2.15 0 3.07-1.87 3.75-3.65 3.95.29.25.54.73.54 1.48 0 1.07-.01 1.93-.01 2.2 0 .21.15.46.55.38A8.013 8.013 0 0016 8c0-4.42-3.58-8-8-8z"/></svg>github.com/openfilm/openfilm</span></div>
+
+<canvas class="full" id="fx" width="1920" height="1080"></canvas>
+<svg class="abs" id="cur" viewBox="0 0 26 26"><path d="M5 2.5v19.2l5-4.6 3.1 7.1 3.4-1.5-3.1-6.9h6.9Z" fill="#111" stroke="#fff" stroke-width="1.6" stroke-linejoin="round"/></svg>
+<div id="vig"></div>
+<canvas class="full" id="grain" width="960" height="540"></canvas>
+<div id="black"></div>
+
+<script type="module">
+import { clamp, lerp, prog, inout, out3, out5, in3, spring, rnd, fontsReady } from './lib/ease.js';
+const $ = (s) => document.querySelector(s);
+const VO = 0.3;
+let DUR = 31.3;                                         /* set from the last word: 下期见 and a short hold */
+let W = null, FO = 0;
+/* when, from the line's own word timing */
+async function words() {
+  const raw = await (await fetch('assets/audio/vo/l7-v5.vtt')).text(); const chars = [];
+  const sec = (h, m, x) => +h * 3600 + +m * 60 + +x;
+  for (const cue of raw.split(/\n\n+/)) {
+    const m = cue.match(/(\d\d):(\d\d):(\d\d\.\d+) --> (\d\d):(\d\d):(\d\d\.\d+)\n([\s\S]+)/);
+    if (!m) continue;
+    let t = sec(m[1], m[2], m[3]);
+    for (const part of m[7].split(/(<\d\d:\d\d:\d\d\.\d+>)/)) {
+      const tag = part.match(/<(\d\d):(\d\d):(\d\d\.\d+)>/);
+      if (tag) { t = sec(tag[1], tag[2], tag[3]); continue; }
+      for (const ch of part) if (/\S/.test(ch)) chars.push([ch, t]);
+    }
+  }
+  const text = chars.map((c) => c[0]).join('');
+  const at = (w) => chars[text.indexOf(w)][1] + VO;
+  W = { cmd: at('一行命令'), me: at('我做它'), every: at('每个'), none: at('都不会'), young: at('很年轻'), keep: at('我会'),
+    follow: at('现在关注'), share: at('免费入股'), triple: at('一键三连'), late: at('熬夜'), power: at('动力'), last: at('最后'), want: at('你最想'), comm: at('评论区'),
+    top: at('点赞最高'), make: at('剪出来'), bye: at('下期见'), regret: at('遗憾'), try: at('想试试'), app: at('客户端') };
+  FO = W.follow - 16.54;                                /* the follow block's own times were laid out on 现在关注 at 16.54 */
+  DUR = W.bye + 1.95;
+}
+const set = (el, o, tf) => { o = clamp(o); el.style.opacity = String(o); el.style.visibility = o < 0.002 ? 'hidden' : 'visible'; if (tf !== undefined) el.style.transform = tf; };
+const seekTo = (v, s) => new Promise((ok) => {
+  const want = Math.min((v.duration || 99) - 0.03, Math.max(0, s));
+  const go = () => { if (!v.seeking && v.readyState >= 2 && Math.abs(v.currentTime - want) < 0.002) return ok(); v.addEventListener('seeked', go, { once: true }); if (Math.abs(v.currentTime - want) >= 0.002) v.currentTime = want; };
+  go();
+});
+const fmt = (n) => Math.round(n).toLocaleString('en-US');
+
+/* ── A · the window: on its picture, back to the whole of it; then the camera goes through it, into what people want to make ── */
+const PIC = { x: 203, y: 74.5, w: 780.44, h: 439 };           /* the picture, in the recording's css px (ui-rec/rec-s7.mjs) */
+const POSE = {                                          /* the window's point, the place on screen it is at, the scale */
+  pic: [PIC.x + PIC.w / 2, PIC.y + PIC.h / 2, 960, 540, 1920 / PIC.w],
+  all: [800, 500, 960, 540, 0.96],
+};
+const mix = (a, b, k) => [lerp(a[0], b[0], k), lerp(a[1], b[1], k), lerp(a[2], b[2], k), lerp(a[3], b[3], k), Math.exp(lerp(Math.log(a[4]), Math.log(b[4]), k))];
+function drawWindow(t) {
+  const p = mix(POSE.pic, POSE.all, inout(prog(t, 0.45, 2.9)));
+  const thru = in3(prog(t, W.me - 0.45, W.me + 0.4)), s = p[4] * (1 + 1.9 * thru);
+  set($('#win'), 1 - out3(prog(t, W.me - 0.2, W.me + 0.35)), `translate(${p[2] - p[0] * s}px, ${p[3] - p[1] * s}px) scale(${s})`);
+  $('#win').style.filter = thru > 0.01 ? `blur(${6 * thru}px)` : 'none';
+  return t < W.me + 0.4 ? seekTo($('#rec'), Math.floor(t * 30 + 1e-6) / 30 + 0.5 / 30) : null;
+}
+
+/* ── C · a command, or the app ── */
+const CMD = 'npx skills add openfilm/openfilm';
+function drawInstall(t) {
+  const a = W.try, on = out3(prog(t, a, a + 0.55)), off = inout(prog(t, W.young - 0.45, W.young - 0.05));
+  set($('#term'), on * (1 - off), `translate(${(1 - on) * -80 - off * 140}px, ${off * -30}px) scale(${1 + 0.22 * off})`);
+  set($('#cap1'), out3(prog(t, a + 0.3, a + 0.8)) * (1 - off), `translate(${530 - off * 140}px, 690px) translateX(-50%)`);
+  const n = Math.round(CMD.length * prog(t, W.cmd + 0.02, W.cmd + 0.6));
+  $('#typed').textContent = CMD.slice(0, n);
+  const entered = t >= W.cmd + 0.7;
+  $('#car1').style.opacity = entered ? '0' : (n < CMD.length || Math.floor(t * 2.6) % 2 === 0 ? '1' : '0');
+  const ok = out3(prog(t, W.cmd + 0.8, W.cmd + 1.05));
+  set($('#okl'), ok, `translateY(${(1 - ok) * 10}px)`);
+  /* or the app: its icon, and its download */
+  const b = W.app - 0.85, ic = prog(t, b, b + 0.6), ics = spring(ic, 2.2, 6.5);
+  const drift = off * 140, grow = 1 + 0.22 * off;
+  set($('#icon'), clamp(ic * 5) * (1 - off), `translate(${1420 - 115 + drift}px, ${455 - 115}px) scale(${(0.3 + 0.7 * ics) * grow})`);
+  const dl = out3(prog(t, b + 0.3, b + 0.7)), press = t >= W.app && t < W.app + 0.11 ? 0.95 : 1;
+  set($('#dl'), dl * (1 - off), `translate(${1420 + drift}px, ${682 + (1 - dl) * 24}px) translate(-50%, -50%) scale(${press * grow})`);
+  $('#dl .fill').style.width = `${100 * inout(prog(t, W.app + 0.05, W.app + 0.5))}%`;
+  $('#dlt').textContent = t >= W.app + 0.5 ? '下载好了 ✓' : '下载客户端';
+  set($('#cap2'), dl * (1 - off), `translate(${1420 + drift}px, 768px) translateX(-50%)`);
+}
+
+/* ── D · ideas → films ── */
+const IDEAS = [
+  [['给女儿做一本', '会动的睡前绘本'], 'picture-book', [0, 0, 220], 0.4],
+  [['乐队的第一支 MV'], 'music-video', [-600, -250, -40], 3.0],
+  [['把梦里那头鲸', '做成动画'], 'animation', [610, -270, 0], 0.3],
+  [['给自己的香水', '拍一条广告'], 'commercial', [-700, 240, 60], 0.2],
+  [['把物理题讲成', '三分钟动画'], 'education', [660, 260, -60], 1.0],
+  [['讲讲《最后的晚餐》', '里的透视'], 'explainer', [-150, -480, -120], 1.0],
+  [['咖啡机的原理', '一页一页讲清楚'], 'presentation', [260, 480, -100], 0.5],
+  [['我的 App 上线', '宣传片'], 'product-film', [-1160, -60, -160], 1.0],
+  [['小店保温杯的', '竖屏广告'], 'social-ad', [1160, -20, -140], 0.4],
+  [['一年的照片', '拼成一段回忆'], 'vfx', [-570, 570, -180], 0.4],
+  [['两小时的采访', '剪成三分钟'], 'video-editing', [630, -570, -200], 0.4],
+];
+const FAR_TXT = ['我家猫的一天', '毕业旅行 vlog', '婚礼快剪', '奶奶八十大寿', '第一次跑完马拉松', '露营的周末', '读书笔记', '家乡的老街', '公司年会回顾', '教爸妈用手机',
+  '课堂实验', '新品开箱', '第一支 vlog', '旅行地图动画', '播客切片', '烘焙教程', '健身打卡', '手作记录', '乐队排练', '城市延时', '学术报告', '求婚视频', '毕业答辩', '运动会'];
+const FAR_IMG = ['s4-lib-1', 's4-lib-2', 's4-lib-3', 's4-lib-4', 's4-lib-5', 's4-lib-6', 's4-lib-7', 's4-lib-8', 's4-dev-ad', 's4-dev-book', 's4-dev-explainer', 's4-dev-lesson',
+  's4-dev-mv', 's4-dev-product', 'poster-snow', 'poster-city', 'photo-cat', 'photo-friends', 'window-city', 's4-coffee', 's4-talk', 's4-grade', 's4-sub', 's4-lib-3'];
+const cards = [];
+{
+  const box = $('#ideas');
+  const make = (lines, back, near) => {
+    const el = document.createElement('div'); el.className = 'card';
+    el.innerHTML = `<div class="f paper"><i class="tape"></i>${lines.map((l) => `<span>${l}</span>`).join('')}</div><div class="b">${near
+      ? `<video src="assets/video/showcase/${back}.mp4" muted playsinline preload="auto"></video>` : `<img src="assets/image/${back}.png">`}</div>`;
+    box.append(el); return el;
+  };
+  IDEAS.forEach(([lines, src, p, seek], i) => cards.push({ el: make(lines, src, true), near: true, i, p, seek, rz: (rnd(i * 3.7) - 0.5) * 9 }));
+  FAR_TXT.forEach((txt, j) => {
+    const a = rnd(j * 5.1 + 2) * Math.PI * 2, r = 900 + rnd(j * 2.3) * 1900;
+    cards.push({ el: make([txt], FAR_IMG[j], false), near: false, i: j, p: [Math.cos(a) * r * 1.25, Math.sin(a) * r * 0.75, -700 - rnd(j * 8.9) * 1900], rz: (rnd(j * 1.9) - 0.5) * 14 });
+  });
+  /* the first one alone; the rest from the middle out */
+  cards.filter((c) => c.near).slice(1).sort((a, b) => Math.hypot(a.p[0], a.p[1]) - Math.hypot(b.p[0], b.p[1])).forEach((c, k) => { c.rank = k + 1; });
+  cards[0].rank = 0;
+}
+const zc = (t) => 170 * inout(prog(t, W.me + 0.1, W.me + 2.0)) + 560 * inout(prog(t, W.me + 1.55, W.me + 3.8)) + 420 * out3(prog(t, W.me + 3.4, W.me + 6.0));
+const camX = (t) => 110 * inout(prog(t, W.me + 0.1, W.me + 6.0)), camY = (t) => -60 * inout(prog(t, W.me + 0.1, W.me + 6.0));
+function drawIdeas(t, G) {
+  const waits = [];
+  if (t < W.me - 0.4 || t > 22.3 + FO) { cards.forEach((c) => { c.el.style.visibility = 'hidden'; }); return waits; }
+  /* while the command and the app are up, the films stand back, out of focus, behind them */
+  const back = inout(prog(t, W.try - 0.4, W.try + 0.3)) * (1 - inout(prog(t, W.young - 0.6, W.young - 0.15)));
+  for (const c of cards) {
+    const appear = c.near ? (c.rank === 0 ? W.me + 0.12 : W.every - 0.25 + 0.11 * c.rank) : W.me + 2.1 + rnd(c.i * 4.4) * 1.3;
+    const flipAt = c.near ? W.none + 0.12 * c.rank : W.me + 3.6 + rnd(c.i * 6.6) * 1.7;
+    const ap = prog(t, appear, appear + 0.6), fp = prog(t, flipAt, flipAt + 0.85);
+    /* in the air: drifting up, the camera easing back through them */
+    let x = c.p[0] + 7 * Math.sin(0.6 * t + c.i * 1.7) - camX(t), y = c.p[1] - 16 * (t - W.me) - camY(t), z = c.p[2] - zc(t) - 700 * back;
+    let ry = 180 * spring(fp, 1.4, 5.2), rz = c.rz * (1 - 0.6 * out3(fp)), s = 0.8 + 0.2 * spring(ap, 2, 6);
+    let o = clamp(ap * 5);
+    if (c.near) {                                       /* landed: today's clips on the timeline */
+      const k = inout(prog(t, W.young - 0.4 + 0.045 * c.i, W.young + 0.45 + 0.045 * c.i));
+      const [tx, ty] = onScreen(G, CLIP(c.i), 540);
+      x = lerp(x, tx - 960, k); y = lerp(y, ty - 540, k); z = lerp(z, 0, k); ry = lerp(ry, 180, k); rz = lerp(rz, 0, k); s = lerp(s, G[2] / 3, k);
+      if (t > flipAt - 0.1) waits.push(seekTo(c.el.querySelector('video'), (c.seek + Math.max(0, t - flipAt)) % 3.9));
+    } else o *= 1 - prog(t, W.try - 0.3, W.try + 0.3);
+    const shade = 0.66 + 0.34 * Math.abs(Math.cos(ry * Math.PI / 180));
+    const fog = c.near ? 1 : clamp(1 - (-z - 1200) / 5000, 0.78, 1);       /* the far ones: out of focus, not grey */
+    const blur = c.near ? 7 * back : clamp((-z - 1300) / 520, 0, 4.2);
+    c.el.style.visibility = o < 0.002 ? 'hidden' : 'visible';
+    c.el.style.transform = `translate3d(${x}px, ${y}px, ${z}px) rotateZ(${rz}deg) rotateY(${ry}deg) scale(${s})`;
+    for (const face of c.el.children) { face.style.opacity = String(o * (1 - 0.7 * back)); face.style.filter = `brightness(${shade * fog * (1 - 0.35 * back)})${blur > 0.05 ? ` blur(${blur}px)` : ''}`; }
+    /* each note written as it comes, a line at a time */
+    c.el.querySelectorAll('.f span').forEach((sp, k) => {
+      const a = appear + (c.rank === 0 ? 0.2 + 0.62 * k : 0.12 + 0.3 * k), d = c.rank === 0 ? 0.62 : 0.3;
+      sp.style.clipPath = `inset(-20% ${100 - 100 * prog(t, a, a + d)}% -20% 0)`;
+    });
+  }
+  return waits;
+}
+
+/* ── E · the timeline: today, and the versions to come ── */
+const CLIP = (i) => 214 + 134 * i;                      /* today's clips: 128 × 72, the films that came down */
+const GH = [[1654, 250, 'v0.2'], [1912, 190, 'v0.3'], [2110, 290, 'v0.4'], [2408, 210, 'v0.5'], [2626, 260, '…']];
+$('#ghosts').innerHTML = GH.map(([x, w, l]) => `<div class="ghost" style="left:${x}px;width:${w}px"><div class="fl"></div><span>${l}</span></div>`).join('');
+const ghostEls = [...document.querySelectorAll('.ghost')];
+const groupAt = (t) => {                                /* the timeline's own move: along it, up out of the way (v0.2 in the middle), then off */
+  const up = inout(prog(t, 16.3 + FO, 16.95 + FO));
+  return [lerp(-760 * inout(prog(t, W.young + 0.7, W.follow + 0.16)), 960 - 0.62 * 1779, up), lerp(0, 230 - 0.62 * 540, up) - 1150 * in3(prog(t, 21.25 + FO, 21.95 + FO)), lerp(1, 0.62, up)];
+};
+const onScreen = (G, x, y) => [G[0] + G[2] * x, G[1] + G[2] * y];
+function drawTimeline(t, G) {
+  $('#tl').style.transform = `translate(${G[0]}px, ${G[1]}px) scale(${G[2]})`;
+  const r = out3(prog(t, W.young - 0.5, W.young + 0.1));
+  set($('#rail'), r, `scaleX(${0.55 + 0.45 * r})`);
+  const v = prog(t, W.young - 0.3, W.young + 0.3);
+  set($('#ver'), clamp(v * 3), `scale(${0.6 + 0.4 * spring(v, 2.4, 6)})`);
+  const ph = prog(t, W.young + 0.1, W.young + 0.65);
+  const phx = 1636 + 278 * out3(prog(t, W.power, W.power + 0.4));
+  set($('#ph'), clamp(ph * 4), `translate(${phx}px, ${-60 * (1 - spring(ph, 1.6, 6))}px)`);
+  ghostEls.forEach((g, k) => {
+    const a = W.keep + 0.3 * k, p = prog(t, a, a + 0.45);
+    set(g, clamp(p * 3), `scaleX(${0.7 + 0.3 * out5(p)})`);
+  });
+  /* v0.2, filled by the triple tap */
+  const fill = inout(prog(t, 20.25 + FO, W.power + 0.05));
+  ghostEls[0].querySelector('.fl').style.width = `${100 * fill}%`;
+  ghostEls[0].querySelector('span').style.color = fill > 0.3 ? '#fff' : '';
+  ghostEls[0].style.borderColor = fill > 0.98 ? 'transparent' : '';
+  const glow = Math.max(0, 1 - Math.abs(t - W.power - 0.12) / 0.45);
+  ghostEls[0].style.boxShadow = glow > 0 ? `0 0 ${40 * glow}px rgba(255,130,90,${0.7 * glow})` : 'none';
+  const nt = prog(t, W.late - 0.1, W.late + 0.35), [nx, ny] = onScreen(G, 1654, 504);   /* 3 a.m., over v0.2, at its own size */
+  set($('#night'), clamp(nt * 3), `translate(${nx}px, ${ny - 60}px) scale(${0.7 + 0.3 * spring(nt, 2, 6)})`);
+}
+
+/* ── F · follow (free shares), the triple tap ── */
+const BTN = [[1180, 690], [1400, 690], [1620, 690]];
+function drawFollow(t) {
+  const out = -1150 * in3(prog(t, 21.25 + FO, 21.95 + FO));
+  const fi = prog(t, W.follow - 0.1, W.follow + 0.5), up = inout(prog(t, 17.55 + FO, 18.1 + FO)), gone = inout(prog(t, 18.75 + FO, 19.15 + FO));
+  const clicked = t >= 17.3 + FO, f = $('#follow');
+  f.innerHTML = clicked ? '✓ 已关注' : '<span style="font-weight:600">+</span> 关注';
+  f.style.background = clicked ? 'rgba(255,255,255,.1)' : 'linear-gradient(180deg, #ff825d, #e8553a)';
+  f.style.color = clicked ? 'rgba(246,244,240,.82)' : '#fff';
+  f.style.boxShadow = clicked ? 'inset 0 0 0 1.5px rgba(255,255,255,.16)' : '0 22px 50px rgba(233,85,58,.38)';
+  const press = t >= 17.24 + FO && t < 17.34 + FO ? 0.94 : 1;
+  set(f, clamp(fi * 3) * (1 - gone), `translate(960px, ${lerp(560, 330, up) - 60 * gone + out}px) translate(-50%, -50%) scale(${(0.7 + 0.3 * spring(fi, 2, 6)) * lerp(1, 0.74, up) * press})`);
+  const rp = prog(t, 17.24 + FO, 17.95 + FO);
+  set($('#ripple'), (1 - rp) * (rp > 0 ? 0.9 : 0), `translate(960px, ${560 + out}px) scale(${0.4 + 1.5 * out3(rp)})`);
+  /* the certificate, stamped */
+  const ci = out5(prog(t, W.share - 0.2, W.share + 0.4)), side = inout(prog(t, 18.8 + FO, 19.35 + FO));
+  const cx = lerp(960, 600, side), cy = lerp(lerp(940, 690, ci), 690, side) + out;
+  set($('#cert'), clamp(ci * 2), `translate(${cx - 460}px, ${cy - 240}px) rotate(${lerp(-4, -1.2, ci) - 1.5 * side}deg) scale(${lerp(1, 0.78, side)})`);
+  const hit = W.share + 0.52, sp = prog(t, hit - 0.12, hit);
+  set($('#seal'), t < hit - 0.12 ? 0 : 0.92, `rotate(-14deg) scale(${t < hit ? lerp(2.1, 1, in3(sp)) : 1 - 0.05 * Math.sin(Math.PI * prog(t, hit, hit + 0.16))})`);
+  /* 一键三连: pressed and held, they fill, they burst */
+  const hold = prog(t, 19.05 + FO, 19.9 + FO), burst = t >= 19.92 + FO;
+  ['#t0', '#t1', '#t2'].forEach((id, k) => {
+    const el = $(id), a = W.triple - 0.05 + 0.08 * k, p = prog(t, a, a + 0.5);
+    const pop = burst ? 1 + 0.22 * Math.sin(Math.PI * prog(t, 19.92 + FO + 0.03 * k, 20.3 + FO + 0.03 * k)) : 1 - (hold > 0 && hold < 1 ? 0.04 : 0);
+    set(el, clamp(p * 3), `translate(${BTN[k][0]}px, ${BTN[k][1] + out}px) scale(${(0.5 + 0.5 * spring(p, 2, 6)) * pop})`);
+    el.querySelector('circle').setAttribute('stroke-dashoffset', String(553 * (1 - (burst ? 1 : inout(hold)))));
+    el.querySelector('.rg').style.opacity = String(burst ? 1 - prog(t, 20.0 + FO, 20.4 + FO) : 1);
+    const ic = el.querySelector('.ic');
+    ic.style.color = burst ? '#ff8458' : 'rgba(246,244,240,.78)';
+    ic.querySelectorAll('path, circle').forEach((s, j) => { s.setAttribute('fill', !burst || (k === 1 && j > 0) ? 'none' : k === 1 ? 'rgba(255,132,88,.2)' : '#ff8458'); });
+  });
+}
+
+/* sparks: out of the three buttons, then up into v0.2 */
+const fx = $('#fx').getContext('2d');
+function drawSparks(t, G) {
+  fx.clearRect(0, 0, 1920, 1080);
+  if (t < 19.9 + FO || t > 21.4 + FO) return;
+  const [vx0, vy] = onScreen(G, 1654, 540), [vx1] = onScreen(G, 1904, 540);
+  fx.globalCompositeOperation = 'lighter';
+  for (let i = 0; i < 54; i++) {
+    const b = BTN[i % 3], a = rnd(i * 3.1) * Math.PI * 2, sp = 70 + 120 * rnd(i * 7.7);
+    const bp = prog(t, 19.92 + FO, 20.4 + FO);                    /* the burst */
+    if (bp > 0 && bp < 1) {
+      const d = sp * out3(bp), px = b[0] + Math.cos(a) * (60 + d), py = b[1] + Math.sin(a) * (60 + d);
+      fx.fillStyle = `rgba(255,${150 + 60 * rnd(i)},${100 + 40 * rnd(i * 2)},${0.9 * (1 - bp)})`;
+      fx.beginPath(); fx.arc(px, py, 3.2 * (1 - 0.5 * bp), 0, 6.283); fx.fill();
+    }
+    const s0 = 20.08 + FO + 0.012 * i, tp = prog(t, s0, s0 + 0.62);   /* the stream, landing left to right */
+    if (tp > 0 && tp < 1) {
+      const ex = lerp(vx0 + 12, vx1 - 12, i / 53), ey = vy + (rnd(i * 9.3) - 0.5) * 30;
+      const sx = b[0] + Math.cos(a) * 70, sy = b[1] + Math.sin(a) * 70, cxp = (sx + ex) / 2 + (rnd(i * 4.2) - 0.5) * 300, cyp = Math.min(sy, ey) - 160;
+      for (let k = 0; k < 5; k++) {
+        const u = inout(clamp(tp - k * 0.03)), q = 1 - u;
+        const px = q * q * sx + 2 * q * u * cxp + u * u * ex, py = q * q * sy + 2 * q * u * cyp + u * u * ey;
+        fx.fillStyle = `rgba(255,${140 + 70 * rnd(i)},${90 + 40 * rnd(i * 2)},${(0.85 - k * 0.17) * (1 - 0.6 * u)})`;
+        fx.beginPath(); fx.arc(px, py, 3.4 - k * 0.5, 0, 6.283); fx.fill();
+      }
+    }
+  }
+  fx.globalCompositeOperation = 'source-over';
+}
+
+/* ── G, H · what would you have it make? the comments: a panel, yours written in its box and posted at the top of the
+   list (the others step down a row), its likes climbing, the stamp on it ── */
+const ASK = '帮我把毕业旅行的 300 段素材剪成一条片子';
+const CM = [   /* name, when, what, likes before and after, avatar */
+  ['你', '刚刚', ASK, 1, 3568, 'linear-gradient(140deg,#ff9a6b,#e2533a)'],
+  ['阿杰', '12 分钟前', '我家猫的一天，它一天要睡二十个小时', 2184, 2301, 'linear-gradient(140deg,#7fb2ff,#4f6bdc)'],
+  ['momo', '9 分钟前', '给爸妈的结婚纪念日做一条短片', 1736, 1802, 'linear-gradient(140deg,#c99bff,#8457d6)'],
+  ['林小鹿', '3 分钟前', '把两小时的播客剪成 60 秒竖屏', 1209, 1251, 'linear-gradient(140deg,#6fdcb4,#2f9e7c)'],
+];
+const THUMB = '<svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round"><path d="M2.5 10.2h3.6v10.6H2.5zM8.3 10.2l4.1-7.1c.5-.8 1.6-1 2.3-.3.5.5.7 1.2.5 1.9l-1.1 4.4h5.3c1.4 0 2.4 1.3 2 2.7l-2 7.2c-.3 1.1-1.3 1.8-2.4 1.8H8.3Z"/></svg>';
+$('#clist').innerHTML = CM.map(([nm, when, tx, , , av]) => `<div class="cm"><div class="av" style="background:${av}">${[...nm][0].toUpperCase()}</div>
+  <div class="who"><div class="nm">${nm}<small>${when}</small>${nm === '你' ? '<i>最热</i>' : ''}</div><div class="tx">${tx}</div></div><div class="lk">${THUMB}<b>0</b></div></div>`).join('');
+const cmEls = [...document.querySelectorAll('#clist .cm')];
+const PANEL = { x: 370, y: 300 }, ROW_H = 118;
+function drawComments(t) {
+  const pin = out5(prog(t, W.last - 0.05, W.last + 0.5)), gone = inout(prog(t, W.bye - 0.32, W.bye + 0.08));
+  set($('#cpanel'), pin * (1 - gone), `translate(${PANEL.x}px, ${PANEL.y + (1 - pin) * 50 - 30 * gone}px)`);
+  /* the question, handwritten over it */
+  const q = prog(t, W.want - 0.1, W.want + 0.8);
+  set($('#ask'), (q > 0 ? 1 : 0) * (1 - gone), `translate(960px, ${PANEL.y - 112 - 30 * gone}px) translateX(-50%)`);
+  $('#ask').style.clipPath = `inset(-20% ${100 - 100 * inout(q)}% -20% 0)`;
+  /* written in the box, sent */
+  const sent = W.comm, n = Math.round([...ASK].length * prog(t, W.want + 0.75, sent - 0.3));
+  const blink = Math.floor(t * 2.6) % 2 === 0;
+  $('#ctext').innerHTML = t < sent && n > 0 ? `${[...ASK].slice(0, n).join('')}<span class="car"></span>`
+    : `<span class="ph">说说你最想让它剪什么…</span>${t > W.want + 0.6 && t < W.want + 0.75 && blink ? '<span class="car" style="margin-left:-4px"></span>' : ''}`;
+  const ready = t < sent && n === [...ASK].length;
+  $('#send').style.background = ready ? '#ff8458' : 'rgba(255,255,255,.12)';
+  $('#send').style.color = ready ? '#fff' : 'rgba(246,244,240,.55)';
+  $('#send').style.transform = `scale(${t >= sent - 0.08 && t < sent ? 0.93 : 1})`;
+  $('#ccount').textContent = t >= sent ? '1,287' : '1,286';
+  /* the list: the others a row down first, then yours in at the top, in the room they left */
+  const ins = inout(prog(t, sent, sent + 0.4)), mine = out3(prog(t, sent + 0.25, sent + 0.6));
+  cmEls.forEach((el, k) => {
+    const [, , , n0, n1] = CM[k];
+    let y, o = 1;
+    if (k === 0) {
+      y = 14 - 20 * (1 - mine); o = mine;
+      const c = t < W.top - 0.2 ? 1 : lerp(1, n1, Math.pow(inout(prog(t, W.top - 0.2, W.top + 1.2)), 1.5)) + 7 * Math.max(0, t - W.top - 1.2);
+      el.querySelector('b').textContent = fmt(c);
+      const lit = inout(prog(t, W.top + 0.9, W.top + 1.3));
+      el.style.background = `rgba(255,132,88,${0.08 * lit})`;
+      el.querySelector('.nm i').style.opacity = String(lit);
+      el.querySelector('.lk').style.color = t > W.top - 0.2 ? '#ffb38f' : '';
+    } else {
+      y = 14 + ROW_H * (k - 1 + ins);
+      el.querySelector('b').textContent = fmt(lerp(n0, n1, inout(prog(t, W.top - 0.1, W.top + 1.3))));
+    }
+    el.style.transform = `translateY(${y}px)`; el.style.opacity = String(o);
+  });
+  const hit = W.make, sp = prog(t, hit - 0.13, hit);
+  set($('#stamp'), t < hit - 0.13 ? 0 : 0.94 * (1 - gone), `translate(${PANEL.x + 868}px, ${PANEL.y + 76 + 14 + 56 - 30 * gone}px) rotate(-8deg) scale(${0.82 * (t < hit ? lerp(2.2, 1, in3(sp)) : 1 - 0.05 * Math.sin(Math.PI * prog(t, hit, hit + 0.16)))})`);
+}
+
+/* ── I · see you ── */
+function drawBye(t) {
+  const l = out3(prog(t, W.bye - 0.1, W.bye + 0.6));
+  set($('#logo'), l, `translate(${960 - 300}px, ${330 + (1 - l) * 16}px) scale(${0.95 + 0.05 * l})`);
+  const sw = prog(t, W.bye + 0.75, W.bye + 1.55), at = lerp(-40, 120, sw);
+  $('#sweep').style.background = `linear-gradient(105deg, transparent ${at - 18}%, rgba(255,236,210,.9) ${at}%, transparent ${at + 18}%)`;
+  set($('#sweep'), sw > 0 && sw < 1 ? 1 : 0, `translate(${960 - 300}px, 330px)`);
+  const b = prog(t, W.bye + 0.05, W.bye + 0.85);
+  set($('#bye'), b > 0 ? 1 : 0, 'translate(960px, 520px) translateX(-50%)');
+  $('#bye').style.clipPath = `inset(-10% ${100 - 100 * inout(b)}% -10% 0)`;
+  const k = out3(prog(t, W.bye + 0.75, W.bye + 1.3));
+  set($('#links'), k, `translate(960px, ${770 + (1 - k) * 14}px) translateX(-50%)`);
+}
+
+/* ── the hand ── */
+let HAND = null;                                       /* built once the words are known */
+const handKeys = () => [
+  [W.app - 0.5, 1740, 1000, 0], [W.app - 0.07, 1448, 696, 1], [W.app + 0.4, 1448, 696, 1], [W.app + 0.8, 1560, 900, 0],
+  ...[[16.55, 1560, 900, 0], [16.75, 1430, 820, 1], [17.18, 990, 578, 1], [17.5, 990, 578, 1], [17.9, 1240, 640, 1], [18.62, 1240, 640, 1], [18.98, 1192, 702, 1], [19.95, 1192, 702, 1], [20.4, 1330, 880, 0]].map(([a, ...r]) => [a + FO, ...r]),
+  /* to the comment box, a click in it; then to 发送 */
+  [W.want + 0.05, 1720, 1010, 0], [W.want + 0.6, 905, 896, 1], [W.comm - 0.42, 905, 896, 1], [W.comm - 0.12, 1442, 896, 1], [W.comm + 0.25, 1442, 896, 1], [W.comm + 0.7, 1560, 1000, 0],
+];
+function drawHand(t) {
+  HAND ??= handKeys();
+  let i = 0; while (i + 1 < HAND.length && t >= HAND[i + 1][0]) i++;
+  const a = HAND[i], b = HAND[Math.min(i + 1, HAND.length - 1)];
+  const k = b[0] > a[0] ? inout(prog(t, a[0], b[0])) : 1;
+  const o = t < HAND[0][0] ? 0 : lerp(a[3], b[3], k);
+  const down = (t >= W.app && t < W.app + 0.11) || (t >= 17.24 + FO && t < 17.34 + FO) || (t >= 19.02 + FO && t < 19.92 + FO) || (t >= W.want + 0.62 && t < W.want + 0.72) || (t >= W.comm - 0.08 && t < W.comm);
+  set($('#cur'), o, `translate(${lerp(a[1], b[1], k) - 6}px, ${lerp(a[2], b[2], k) - 4}px) scale(${down ? 0.86 : 1})`);
+}
+
+/* ── the air: warm motes, and grain ── */
+const motes = $('#motes').getContext('2d'), grain = $('#grain').getContext('2d'), noise = grain.createImageData(960, 540);
+function drawAir(t) {
+  motes.clearRect(0, 0, 1920, 1080);
+  for (let i = 0; i < 60; i++) {
+    const z = rnd(i * 2.2), x = (rnd(i * 1.3) * 2100 + t * (8 + 14 * z)) % 2100 - 90, y = ((rnd(i * 4.7) * 1260 - t * (10 + 26 * z)) % 1260 + 1260) % 1260 - 90;
+    const r = 1 + 3.4 * z * z, a = (0.05 + 0.2 * z) * (0.6 + 0.4 * Math.sin(t * (0.8 + z) + i));
+    const g = motes.createRadialGradient(x, y, 0, x, y, r * 3);
+    g.addColorStop(0, `rgba(255,214,170,${a})`); g.addColorStop(1, 'rgba(255,214,170,0)');
+    motes.fillStyle = g; motes.beginPath(); motes.arc(x, y, r * 3, 0, 6.283); motes.fill();
+  }
+  let s = (Math.floor(t * 30 + 1e-6) * 2654435761 + 1) >>> 0;
+  const d = noise.data;
+  for (let p = 0; p < d.length; p += 4) { s ^= s << 13; s >>>= 0; s ^= s >>> 17; s ^= s << 5; s >>>= 0; d[p] = d[p + 1] = d[p + 2] = s & 255; d[p + 3] = 255; }
+  grain.putImageData(noise, 0, 0);
+}
+
+function frame(t) {
+  const G = groupAt(t);
+  const waits = [drawWindow(t)];
+  drawInstall(t);
+  waits.push(...drawIdeas(t, G));
+  drawTimeline(t, G);
+  drawFollow(t);
+  drawSparks(t, G);
+  drawComments(t);
+  drawBye(t);
+  drawHand(t);
+  drawAir(t);
+  /* no fade in: S7 opens on S6's last frame, in the app, which has neither vignette nor grain; they come in as it draws back */
+  const air = inout(prog(t, 0.45, 2.9));
+  $('#vig').style.opacity = String(air); $('#grain').style.opacity = String(0.09 * air);
+  $('#black').style.opacity = String(prog(t, DUR - 0.8, DUR - 0.05));
+  return Promise.all(waits.filter(Boolean));
+}
+const loaded = (v) => new Promise((ok) => { if (v.readyState >= 2) ok(); else { v.addEventListener('loadeddata', ok, { once: true }); v.addEventListener('error', ok, { once: true }); } });
+const fonts = () => Promise.all(['400 37px Hand', '700 60px Hand', '700 35px Kai', '900 60px Kai'].map((f) => document.fonts.load(f, '想法剪辑股东')));
+window.film = { get duration() { return DUR; }, ready: Promise.all([words(), fontsReady(), fonts(), ...[...document.querySelectorAll('video')].map(loaded)]), frame };
+</script>
+</body>
+</html>

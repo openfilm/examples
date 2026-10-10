@@ -1,0 +1,75 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Title — Into the White</title>
+<style>
+  @font-face { font-family: 'Inter'; src: url(../fonts/inter-latin-var.woff2) format('woff2'); font-weight: 100 900; font-display: block; }
+  @font-face { font-family: 'JetBrains Mono'; src: url(../fonts/jbmono-500.woff2) format('woff2'); font-weight: 500; font-display: block; }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  html, body { width: 1920px; height: 1080px; overflow: hidden; background: transparent; }
+  body { font-family: Inter, sans-serif; color: #fff; -webkit-font-smoothing: antialiased; }
+  .mono { font-family: 'JetBrains Mono', monospace; font-weight: 500; }
+  .pg { position: absolute; inset: 0; }
+  body { --shade: 0; background: linear-gradient(180deg, rgba(8,12,18,calc(.28 * var(--shade))) 0%, rgba(8,12,18,0) 26%, rgba(8,12,18,0) 52%, rgba(8,12,18,calc(.55 * var(--shade))) 100%); }
+  #vf { position: absolute; inset: 0; }
+  #vf i { position: absolute; width: 46px; height: 46px; border: 0 solid #fff; }
+  #vf .a { left: 56px; top: 56px; border-left-width: 3px; border-top-width: 3px; }
+  #vf .b { right: 56px; top: 56px; border-right-width: 3px; border-top-width: 3px; }
+  #vf .c { left: 56px; bottom: 56px; border-left-width: 3px; border-bottom-width: 3px; }
+  #vf .d { right: 56px; bottom: 56px; border-right-width: 3px; border-bottom-width: 3px; }
+  #rec { position: absolute; left: 92px; top: 86px; display: flex; align-items: center; gap: 14px; font-size: 24px; letter-spacing: .14em; white-space: nowrap; }
+  #rec b { width: 16px; height: 16px; border-radius: 50%; background: #ff3b30; }
+  #tcode { position: absolute; right: 92px; top: 86px; font-size: 24px; letter-spacing: .1em; white-space: nowrap; }
+  #gps { position: absolute; right: 92px; bottom: 140px; font-size: 22px; letter-spacing: .12em; color: rgba(255,255,255,.92); white-space: nowrap; text-align: right; line-height: 1.6; }
+  #temp { position: absolute; right: 92px; bottom: 82px; font-size: 44px; letter-spacing: .02em; white-space: nowrap; }
+  #kick { position: absolute; left: 116px; top: 640px; font-size: 26px; letter-spacing: .42em; white-space: nowrap; }
+  #title { position: absolute; left: 106px; top: 752px; font: 800 200px/1 Inter, sans-serif; letter-spacing: -0.035em; white-space: nowrap; }
+  #rule { position: absolute; left: 116px; top: 978px; height: 10px; background: #e5432d; }
+</style>
+</head>
+<body>
+<div id="vf"><i class="a"></i><i class="b"></i><i class="c"></i><i class="d"></i></div>
+<div id="rec" class="mono"><b></b>REC · CAM A · DAY 01</div>
+<div id="tcode" class="mono">14:32:10:00</div>
+<div id="gps" class="mono">61.2047° N<br>24.6511° E</div>
+<div id="temp" class="mono">−18°C</div>
+<div id="kick" class="mono">A WINTER ROAD TRIP</div>
+<h1 id="title">INTO THE WHITE</h1>
+<div id="rule"></div>
+<script>
+const $ = (id) => document.getElementById(id);
+const clamp = (x) => Math.max(0, Math.min(1, x));
+const smooth = (x) => { x = clamp(x); return x * x * (3 - 2 * x); };
+const seg = (t, a, b) => smooth((t - a) / (b - a));
+const out3 = (x) => 1 - Math.pow(1 - clamp(x), 3);
+const out5 = (x) => 1 - Math.pow(1 - clamp(x), 5);
+const inout3 = (x) => { x = clamp(x); return x < 0.5 ? 4 * x * x * x : 1 - Math.pow(-2 * x + 2, 3) / 2; };
+const lerp = (a, b, k) => a + (b - a) * k;
+const D = 3;
+window.film = {
+  width: 1920, height: 1080,
+  duration: D,
+  ready: document.fonts.load('800 200px Inter').then(() => document.fonts.load("500 24px 'JetBrains Mono'")),
+  frame(t) {
+    const out = seg(t, D - 0.45, D);
+    const vfk = out3((t - 0.05) / 0.4);
+    for (const n of document.querySelectorAll('#vf i')) { n.style.transform = `scale(${0.4 + 0.6 * vfk})`; n.style.opacity = String(vfk * (1 - out)); }
+    const hud = seg(t, 0.15, 0.45) * (1 - out);
+    for (const id of ['rec', 'tcode', 'gps', 'temp']) $(id).style.opacity = String(hud);
+    $('rec').querySelector('b').style.opacity = Math.floor(t / 0.5) % 2 === 0 ? '1' : '0.25';
+    $('tcode').textContent = `14:32:${String(10 + Math.floor(t)).padStart(2, '0')}:${String(Math.floor(t * 24) % 24).padStart(2, '0')}`;
+    $('gps').innerHTML = `61.20${(47 + Math.floor(t * 7)) % 100}° N<br>24.65${(11 + Math.floor(t * 5)) % 100}° E`;
+    const kk = out3((t - 0.25) / 0.5);
+    $('kick').style.opacity = String(kk * (1 - out)); $('kick').style.transform = `translateX(${(1 - kk) * -30}px)`;
+    /* the title rises out of its own baseline, and sinks back */
+    const inK = out5((t - 0.35) / 0.7), outK = inout3((t - (D - 0.42)) / 0.35);
+    $('title').style.transform = `translateY(${(1 - inK) * 60 + outK * 60}px)`;
+    $('title').style.clipPath = `inset(-20px -40px ${Math.max(1 - inK, outK) * 100}% -40px)`;
+    $('rule').style.width = `${520 * out3((t - 0.9) / 0.5) * (1 - out)}px`;
+    document.body.style.setProperty('--shade', String(seg(t, 0, 0.3) * (1 - out)));
+  },
+};
+</script>
+</body>
+</html>

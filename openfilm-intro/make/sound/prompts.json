@@ -1,0 +1,15 @@
+{
+  "about": "Prompts for the score and some of the sound effects, as they were generated with `openfilm get music` and `openfilm get sfx` (a sound service connected to OpenFilm). Each made assets/audio/<music|sfx>/<out>.mp3; the sound scripts cut and place them. A new generation sounds different: the hits the scripts time on (the `off` and `in` values in them) may need moving.",
+  "music": [
+    { "out": "section1-score", "sec": 60, "prompt": "Premium cinematic tech explainer score, 100 BPM, no vocals. 0:00-0:06 tense late-night ticking pulses and low drone with a riser into 0:06. 0:06-0:13 playful bright plucks and light percussion. 0:13.5 big impact hit and warm swell for a logo reveal. 0:18-0:30 driving drums and arpeggios building to a crash peak at 0:28.5. 0:30-0:40 light airy marimba groove. 0:40-0:56 optimistic build with pulsing bass and claps. 0:56-1:00 final chord." }
+  ],
+  "sfx": [
+    { "out": "phone-buzz", "prompt": "a smartphone vibrating twice on a fabric desk mat in a quiet room at night, two short buzzes, close" },
+    { "out": "room", "sec": 4, "prompt": "quiet late-night room tone: soft computer fan hum, faint distant city traffic outside a window, subtle and steady, no clicks" },
+    { "out": "tile-land", "sec": 1.2, "prompt": "a heavy glossy ceramic tile dropped onto a polished studio floor: one short solid thud with a tiny bounce, clean, no reverb tail" },
+    { "out": "hop", "sec": 1, "prompt": "a cute soft squishy boing for a small vinyl toy hopping and landing, playful, short" },
+    { "out": "clapper", "sec": 1, "prompt": "a film clapperboard clap: crisp wooden slate snap, close and dry" },
+    { "out": "logo-hit", "sec": 3, "prompt": "a cinematic logo reveal hit: deep sub boom with a bright airy shimmer tail, modern and premium" },
+    { "out": "whip", "sec": 0.6, "prompt": "a fast whip pan whoosh, short airy swish for a camera move, clean" }
+  ]
+}

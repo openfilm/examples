@@ -1,0 +1,305 @@
+<!doctype html>
+<html lang="zh">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=1920, height=1080">
+<title>S6 — how you use it</title>
+<link rel="stylesheet" href="lib/shared.css">
+<style>
+  /* One desktop, two windows: the terminal where the person talks to their agent (Claude Code), on the left, and the
+     desktop app, recorded (ui-rec/rec-s6.mjs → assets/video/s6-ui.mp4, its 1600 × 1000 window at 2×, the project's
+     assets open on its right), which grows out of the address the agent prints. One camera, close on whichever window
+     is at work, on both for the interruption, on the top bar for the export's menu; one hand (and the picture it drags,
+     which the system would draw); at the export, everything it writes spreading out of the dialog, one kind of card
+     in a mirrored pair of arcs: the video formats to the left, the projects and pieces for an editor to the right. Its voice is cut at its pauses (lib/s6-voice.json)
+     and every moment is set on it (lib/s6-plan.json). */
+  #bg { position: absolute; inset: 0; background: radial-gradient(120% 90% at 30% 20%, #1d1f2b 0%, #111219 45%, #07080b 100%); }
+  #bg::after { content: ''; position: absolute; inset: 0; background: radial-gradient(60% 50% at 78% 70%, rgba(217,119,87,.10), transparent 70%), radial-gradient(50% 40% at 18% 80%, rgba(90,120,255,.08), transparent 70%); }
+  #world { position: absolute; left: 0; top: 0; width: 1920px; height: 1080px; transform-origin: 0 0; }
+  .win { position: absolute; border-radius: 14px; overflow: hidden; }
+  /* the terminal */
+  #term { left: 0; top: 0; width: 740px; height: 590px; background: #141416; box-shadow: 0 0 0 1px rgba(255,255,255,.1), 0 40px 110px rgba(0,0,0,.6);
+          font: 400 16.5px/1.55 'JetBrains Mono', 'Noto Sans SC', monospace; color: #e8e6e3; }
+  #term .bar { position: relative; height: 38px; display: flex; align-items: center; padding: 0 15px; gap: 8px; background: #1e1e21; border-bottom: 1px solid #29292c; }
+  #term .bar i { width: 12px; height: 12px; border-radius: 50%; }
+  #term .bar span { position: absolute; left: 0; right: 0; text-align: center; font: 500 13px/38px Geist, 'Noto Sans SC', sans-serif; color: #8d8d92; }
+  #welcome { position: absolute; left: 18px; right: 18px; top: 52px; height: 92px; border: 1.5px solid #d77757; border-radius: 9px; display: flex; align-items: center; gap: 22px; padding: 0 22px; }
+  #welcome b { color: #fff; font-weight: 700; }
+  #log { position: absolute; left: 18px; right: 18px; top: 158px; height: 324px; overflow: hidden; }
+  .ln { white-space: pre; overflow: hidden; text-overflow: ellipsis; }
+  .ln.u { background: #232326; color: #d8d6d2; padding: 1px 9px; margin: 5px 0; border-radius: 4px; }
+  .ln .dot { color: #d77757; } .ln .ok { color: #57c785; } .ln .dim { color: #85858b; } .ln .lnk { color: #7aa8ff; text-decoration: underline; } .ln .err { color: #ff7b72; } .ln .w { color: #e8e6e3; }
+  .ln .spin { color: #d77757; }
+  #prompt { position: absolute; left: 18px; right: 18px; bottom: 34px; height: 54px; border: 1.5px solid #46464b; border-radius: 9px; display: flex; align-items: center; padding: 0 16px; gap: 11px; white-space: pre; }
+  #prompt .ph { color: #66666b; }
+  #prompt .sel { background: rgba(122,168,255,.28); }
+  #hint { position: absolute; left: 22px; bottom: 9px; font-size: 12.5px; color: #66666b; }
+  .car { display: inline-block; width: 9px; height: 20px; background: #e8e6e3; vertical-align: -4px; }
+  #esc { position: absolute; right: 30px; bottom: 44px; height: 38px; padding: 0 14px; border-radius: 8px; background: #f4f1ec; color: #111; font: 700 17px/38px 'JetBrains Mono', monospace;
+         box-shadow: 0 4px 0 #a9a59e, 0 14px 28px rgba(0,0,0,.5); opacity: 0; }
+  /* the desktop app */
+  #win { left: 0; top: 0; width: 1056px; height: 660px; background: #111; box-shadow: 0 0 0 1px rgba(255,255,255,.12), 0 50px 130px rgba(0,0,0,.7); }
+  #win video { position: absolute; left: 0; top: 0; width: 1056px; height: 660px; display: block; }
+  /* what the export writes, round the dialog */
+  #fmts { position: absolute; left: 0; top: 0; width: 1920px; height: 1080px; }
+  .fmt { position: absolute; left: 0; top: 0; height: 54px; padding: 0 20px 0 16px; border-radius: 14px; display: flex; align-items: center; gap: 11px; white-space: nowrap;
+         background: rgba(26,27,31,.93); color: #f4f1ec; box-shadow: inset 0 0 0 1.5px rgba(255,255,255,.13), 0 16px 40px rgba(0,0,0,.5); font: 600 22px/1 Geist, 'Noto Sans SC', sans-serif; opacity: 0; }
+  .fmt svg { flex: none; opacity: .62; }
+  .fmt small { font: 500 15px/1 'Geist Mono', 'Noto Sans SC', monospace; color: rgba(244,241,236,.5); }
+  #ghost { position: absolute; left: 0; top: 0; border-radius: 6px; opacity: 0; box-shadow: 0 10px 30px rgba(0,0,0,.55), 0 0 0 1.5px rgba(255,255,255,.35); transform-origin: 0 0; }
+  #cur { position: absolute; left: 0; top: 0; width: 28px; height: 28px; z-index: 10; filter: drop-shadow(0 2px 4px rgba(0,0,0,.5)); transform-origin: 5px 3px; opacity: 0; }
+  #black { position: absolute; inset: 0; background: #000; }
+</style>
+</head>
+<body>
+<div id="bg"></div>
+<div id="world">
+  <div class="win" id="term">
+    <div class="bar"><i style="background:#ff5f57"></i><i style="background:#febc2e"></i><i style="background:#28c840"></i><span>~/films — claude</span></div>
+    <div id="welcome"><svg id="clawd" width="96" height="64" viewBox="0 0 12 8" shape-rendering="crispEdges"></svg>
+      <div><div><b>Welcome to Claude Code</b></div><div style="color:#85858b">Opus 5.5 · ~/films</div></div></div>
+    <div id="log"></div>
+    <div id="prompt"><span style="color:#85858b">&gt;</span><span id="typed"></span></div>
+    <div id="hint">? for shortcuts</div>
+    <div id="esc">esc</div>
+  </div>
+  <div class="win" id="win"><video id="ui6" src="assets/video/s6-ui.mp4" muted playsinline preload="auto"></video></div>
+  <div id="fmts"></div>
+  <img id="ghost" src="lib/s6-ghost.jpg">
+  <svg id="cur" viewBox="0 0 26 26"><path d="M5 2.5v19.2l5-4.6 3.1 7.1 3.4-1.5-3.1-6.9h6.9Z" fill="#111" stroke="#fff" stroke-width="1.6" stroke-linejoin="round"/></svg>
+</div>
+<div id="black"></div>
+
+<script type="module">
+import { clamp, lerp, prog, inout, out3, out5 } from './lib/ease.js';
+const $ = (s) => document.querySelector(s);
+let P = null, TG = null, W = null, DUR = 21.3;                /* lib/s6-plan.json; where the hand went in the recording; the words */
+
+/* Clawd in the welcome box, from the 12 × 8 sprite */
+const SPRITE = ['..XXXXXXXX..', '..XEXXXXEX..', 'XXXXXXXXXXXX', 'XXXXXXXXXXXX', '..XXXXXXXX..', '..XXXXXXXX..', '..X.X..X.X..', '..X.X..X.X..'];
+$('#clawd').innerHTML = SPRITE.flatMap((row, y) => [...row].map((c, x) => (c === 'X' ? `<rect x="${x}" y="${y}" width="1" height="1" fill="#d77757"/>` : c === 'E' ? `<rect x="${x}" y="${y}" width="1" height="1" fill="#141416"/>` : ''))).join('');
+
+/* ── the windows' places on the desktop (world px): the terminal on the left, the app on the right ── */
+const TERM = [70, 245], WIN = { x: 840, y: 212, k: 1056 / 1600 };
+const inWin = ([x, y]) => [WIN.x + x * WIN.k, WIN.y + y * WIN.k];      /* the recording's css px → the world */
+$('#term').style.transform = `translate(${TERM[0]}px, ${TERM[1]}px)`;
+
+/* ── when each word is said: its line's place in lib/s6-voice.json, plus where the word is in the line ── */
+async function words() {
+  const V = await (await fetch('lib/s6-voice.json')).json(); DUR = V.duration;
+  const raw = await (await fetch(V.vtt)).text(); const chars = [];
+  const sec = (h, m, x) => +h * 3600 + +m * 60 + +x;
+  for (const cue of raw.split(/\n\n+/)) {
+    const m = cue.match(/(\d\d):(\d\d):(\d\d\.\d+) --> (\d\d):(\d\d):(\d\d\.\d+)\n([\s\S]+)/);
+    if (!m) continue;
+    let t = sec(m[1], m[2], m[3]);
+    for (const part of m[7].split(/(<\d\d:\d\d:\d\d\.\d+>)/)) {
+      const tag = part.match(/<(\d\d):(\d\d):(\d\d\.\d+)>/);
+      if (tag) { t = sec(tag[1], tag[2], tag[3]); continue; }
+      for (const ch of part) if (/\S/.test(ch)) chars.push([ch, t]);
+    }
+  }
+  const text = chars.map((c) => c[0]).join('');
+  const said = (w) => { const c = chars[text.indexOf(w)][1]; const l = V.lines.find((x) => c + 0.05 >= x.from && c + 0.05 < x.to) ?? V.lines.at(-1); return l.at + (c - l.from); };
+  W = { open: said('打开'), grow: said('片子'), stop: said('中途'), hands: said('或者自己'), out: said('做完') };
+}
+
+/* ── what the terminal says, and when ── */
+const CMD = 'npx skills add openfilm/openfilm';
+const ASK = '给香水 VESPER 做一条 12 秒的广告：红色马蹄莲、黄昏、一个词。';
+const ASK_CHUNKS = ['给', '香水 ', 'VESPER', ' 做一条 ', '12 秒的', '广告：', '红色', '马蹄莲、', '黄昏、', '一个词。'];
+const FIX = '字标改成金色';
+let LOG = null, TYPING = null;
+function script() {
+  const s = P.steps;
+  LOG = [
+    [P.send, `<div class="ln u">&gt; ${CMD}</div>`],
+    [P.send + 0.2, `<div class="ln"><span class="dot">●</span> Bash(${CMD})</div>`],
+    [P.send + 0.42, `<div class="ln"><span class="dim">  ⎿  </span><span class="ok">✓</span> Added openfilm to ~/.claude/skills</div>`],
+    [P.send + 0.62, `<div class="ln"><span class="w">●</span> 装好了。想做什么视频？</div>`],
+    [P.askSend, `<div class="ln u">&gt; ${ASK}</div>`],
+    [P.reply, `<div class="ln"><span class="w">●</span> 先读 OpenFilm 的说明，再建项目。</div>`],
+    [P.reply + 0.4, `<div class="ln"><span class="dot">●</span> Bash(openfilm open VESPER)</div>`],
+    [P.reply + 0.75, `<div class="ln"><span class="dim">  ⎿  Studio  </span><span class="lnk">http://127.0.0.1:4747</span></div>`],
+    [s[0] - 0.05, `<div class="ln"><span class="dot">●</span> Write(film.html)</div>`],
+    [s[1] - 0.05, `<div class="ln"><span class="dot">●</span> Write(scenes/title.html)</div>`],
+    [s[2] - 0.05, `<div class="ln"><span class="dot">●</span> Write(scenes/line.html)</div>`],
+    [s[3] - 0.05, `<div class="ln"><span class="dot">●</span> Write(scenes/end.html)</div>`],
+    [P.look, `<div class="ln"><span class="dot">●</span> Bash(openfilm look)</div>`, P.esc],
+    [P.esc + 0.07, `<div class="ln"><span class="dim">  ⎿  </span><span class="err">Interrupted</span><span class="dim"> · What should Claude do instead?</span></div>`],
+    [P.fixSend, `<div class="ln u">&gt; ${FIX}</div>`],
+    [P.fixSend + 0.15, `<div class="ln"><span class="w">●</span> 好，VESPER 改成香槟金。</div>`],
+    [P.fix - 0.03, `<div class="ln"><span class="dot">●</span> Update(scenes/title.html)</div>`],
+    [P.fix + 0.05, `<div class="ln"><span class="dim">  ⎿  Updated scenes/title.html with 1 addition and 1 removal</span></div>`],
+  ];
+  /* typed: the command pasted whole, the ask in the chunks an input method gives, the fix */
+  TYPING = [
+    { chunks: [CMD], from: P.paste, to: P.paste, send: P.send, paste: true },
+    { chunks: ASK_CHUNKS, from: P.ask[0], to: P.ask[1], send: P.askSend },
+    { chunks: [...FIX], from: P.fixType[0], to: P.fixType[1], send: P.fixSend },
+  ];
+}
+function typedAt(t) {
+  for (const T of TYPING) {
+    if (t < T.from || t >= T.send) continue;
+    const n = T.paste ? T.chunks.length : Math.round(T.chunks.length * clamp((t - T.from) / Math.max(0.01, T.to - T.from)));
+    return { text: T.chunks.slice(0, Math.max(1, n)).join(''), fresh: T.paste && t < T.from + 0.3 };
+  }
+  return null;
+}
+/* the terminal wants the keys while the person types there */
+const termActive = (t) => t < P.open || (t >= P.esc - 0.3 && t < P.fixSend + 0.2);
+
+/* ── the camera: [world x, world y, zoom] at the middle of the picture ── */
+const POSE = {
+  T0: [446, 540, 1.3], T: [446, 548, 1.4],          /* the terminal, close; the desktop to its right, where the app will be */
+  S: [1368, 545, 1.72],                              /* the app, filling the picture */
+  S2: [1368, 548, 1.66],                             /* the app whole down to the timeline: the assets, the tracks, the picture */
+  B: [975, 545, 1.0],                                /* both windows: the interruption, and the app taking the fix */
+  TOP: [1400, 500, 1.72],                            /* the app with its top bar: More, and its menu */
+};
+let KEYS = null;
+function cameraKeys() {
+  const d = TG.dialog, c = inWin([d[0] + d[2] / 2, d[1] + d[3] / 2]);
+  POSE.X = [c[0], c[1] + 4, 1.36]; POSE.X2 = [c[0], c[1] + 4, 1.33];   /* the dialog and what spreads out of it */
+  KEYS = [[0, 'T0'], [1.6, 'T0'], [6.4, 'T'], [P.open + 0.1, 'T'], [P.open + 0.9, 'S'], [W.stop - 0.05, 'S'], [W.stop + 0.8, 'B'],
+    [P.fix + 0.2, 'B'], [P.folder - 0.25, 'S2'], [P.more - 0.6, 'S2'], [P.more - 0.12, 'TOP'], [P.menu + 0.06, 'TOP'], [P.formats + 0.12, 'X'], [DUR, 'X2']];
+}
+function camAt(t) {
+  let i = 0; while (i + 1 < KEYS.length && t >= KEYS[i + 1][0]) i++;
+  const a = POSE[KEYS[i][1]], b = POSE[KEYS[Math.min(i + 1, KEYS.length - 1)][1]];
+  const k = i + 1 < KEYS.length ? inout(prog(t, KEYS[i][0], KEYS[i + 1][0])) : 0;
+  return [lerp(a[0], b[0], k), lerp(a[1], b[1], k), Math.exp(lerp(Math.log(a[2]), Math.log(b[2]), k))];
+}
+
+/* ── the hand: a path through the world, eased point to point; pressed where it clicks ── */
+let HAND = null, PRESS = null;
+const easeK = (k) => (k < 0.5 ? 4 * k ** 3 : 1 - (-2 * k + 2) ** 3 / 2);
+function handKeys() {
+  const input = [TERM[0] + 330, TERM[1] + 529], path = (a, b, t0, t1, n) => Array.from({ length: n + 1 }, (_, i) => {
+    const e = easeK(i / n); return [lerp(t0, t1, i / n), ...inWin([lerp(a[0], b[0], e), lerp(a[1], b[1], e)])];
+  });
+  const d = TG.dialog, rest = inWin([d[0] + d[2] - 40, d[1] + d[3] + 60]), aside = inWin([TG.ruler[0] + 60, TG.ruler[1] - 140]);
+  HAND = [
+    [P.esc - 0.75, ...inWin([300, 700])], [P.esc - 0.22, ...input], [P.fixSend + 0.25, ...input],
+    [P.folder - 0.1, ...inWin(TG.folder)], [P.grab - 0.22, ...inWin(TG.folder)], [P.grab - 0.08, ...inWin(TG.clip)],
+    ...path(TG.clip, TG.drop, P.grab + 0.05, P.drop - 0.05, 16), [P.drop + 0.08, ...inWin(TG.drop)],
+    [P.view - 0.08, ...inWin(TG.ruler)], [P.view + 0.1, ...inWin(TG.ruler)], [P.trim[0] - 0.08, ...inWin(TG.edge)],
+    ...path(TG.edge, TG.edgeTo, P.trim[0] + 0.03, P.trim[1] - 0.03, 9), [P.trim[1] + 0.15, ...inWin(TG.edgeTo)], [P.play2[0] + 0.3, ...aside],
+    [P.more - 0.1, ...inWin(TG.more)], [P.more + 0.06, ...inWin(TG.more)], [P.menu - 0.08, ...inWin(TG.menu)], [P.menu + 0.04, ...inWin(TG.menu)],
+    [P.formats + 0.3, ...rest], [DUR, ...rest],
+  ];
+  PRESS = [[P.esc - 0.18, P.esc - 0.1], [P.folder, P.folder + 0.05], [P.folder + 0.09, P.folder + 0.14], [P.grab, P.drop], [P.view, P.view + 0.09],
+    [P.trim[0], P.trim[1]], [P.more, P.more + 0.09], [P.menu, P.menu + 0.09]];
+}
+function handAt(t) {
+  if (t < HAND[0][0]) return null;
+  let i = 0; while (i + 1 < HAND.length && t >= HAND[i + 1][0]) i++;
+  const a = HAND[i], b = HAND[Math.min(i + 1, HAND.length - 1)];
+  const k = b[0] > a[0] ? inout(prog(t, a[0], b[0])) : 1;
+  return [lerp(a[1], b[1], k), lerp(a[2], b[2], k)];
+}
+
+/* ── what the export writes: the video formats on the left of the dialog, the editors' projects and the pieces on the
+   right, each from the dialog's edge to its place, a column a side ── */
+const FORMATS = [['MP4', 'H.264'], ['HEVC', 'H.265'], ['ProRes', '422 HQ'], ['WebM', 'VP9'], ['GIF', '动图'], ['PNG', '序列帧']];
+const PROJECTS = [['Premiere Pro', 'XML'], ['DaVinci Resolve', 'XML'], ['透明素材', 'ProRes 4444'], ['分轨音频', 'WAV'], ['字幕', 'SRT'], ['整个项目', 'OpenFilm']];
+const ICON = {
+  film: '<svg width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="#f4f1ec" stroke-width="2" stroke-linecap="round"><rect x="3" y="3" width="18" height="18" rx="2"/><path d="M7 3v18M17 3v18M3 7.5h4M3 12h18M3 16.5h4M17 7.5h4M17 16.5h4"/></svg>',
+  project: '<svg width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="#f4f1ec" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m12 2 9 5-9 5-9-5 9-5Z"/><path d="m3 12 9 5 9-5"/><path d="m3 17 9 5 9-5"/></svg>',
+};
+let CHIPS = null;
+function chips() {
+  $('#fmts').innerHTML = [...FORMATS.map((f) => [...f, 'film']), ...PROJECTS.map((f) => [...f, 'project'])].map(([a, b, ic]) => `<div class="fmt">${ICON[ic]}${a}<small>${b}</small></div>`).join('');
+  const els = [...document.querySelectorAll('.fmt')], d = TG.dialog;
+  const [l, top] = inWin([d[0], d[1]]), [r, bottom] = inWin([d[0] + d[2], d[1] + d[3]]), cy = (top + bottom) / 2, step = (bottom - top - 54) / 5;
+  const ORDER = [2, 3, 1, 4, 0, 5];                                   /* the middle rows first, then outward */
+  CHIPS = els.map((e, i) => {
+    const left = i < FORMATS.length, k = left ? i : i - FORMATS.length, w = e.offsetWidth, u = (k - 2.5) / 2.5;
+    const bulge = 64 * (1 - u * u), y = cy + (k - 2.5) * step;
+    const x = left ? l - 34 - bulge - w / 2 : r + 34 + bulge + w / 2, x0 = left ? l + 46 - w / 2 : r - 46 + w / 2;
+    return { e, w, x, y, x0, y0: lerp(cy, y, 0.45), at: (left ? P.formats : P.project) + 0.045 * ORDER.indexOf(k), i };
+  });
+}
+function drawChips(t) {
+  for (const h of CHIPS) {
+    const p = prog(t, h.at, h.at + 0.6), e = out5(p);
+    h.e.style.opacity = String(clamp(p * 3.5));
+    h.e.style.transform = `translate(${lerp(h.x0, h.x, e) - h.w / 2}px, ${lerp(h.y0, h.y, e) - 27 + 2.5 * Math.sin(1.1 * t + h.i) * e}px) scale(${0.9 + 0.1 * e})`;
+  }
+}
+
+const seekTo = (v, s) => new Promise((ok) => {
+  const want = Math.min((v.duration || 99) - 0.02, Math.max(0, s));
+  const go = () => { if (!v.seeking && v.readyState >= 2 && Math.abs(v.currentTime - want) < 0.002) return ok(); v.addEventListener('seeked', go, { once: true }); if (Math.abs(v.currentTime - want) >= 0.002) v.currentTime = want; };
+  go();
+});
+
+let LINK = null;                                                      /* where the address is, in the world: the app grows out of it */
+function drawLog(t) {
+  const shown = LOG.filter(([a]) => t >= a);
+  const html = shown.map(([, h, until]) => (until && t < until ? h.replace('</div>', `\n<span class="spin">  ✻ </span><span class="dim">Looking at the film… (esc to interrupt)</span></div>`) : h)).join('');
+  const lg = $('#log');
+  if (lg.dataset.html !== html) {                                     /* from the top; once it is full, the oldest lines go, whole */
+    lg.innerHTML = html; lg.dataset.html = html;
+    for (const ln of [...lg.children]) { if (lg.scrollHeight <= lg.clientHeight + 1) break; ln.remove(); }
+  }
+}
+function frame(t) {
+  /* the camera */
+  const [cx, cy, z] = camAt(t);
+  $('#world').style.transform = `translate(${960 - cx * z}px, ${540 - cy * z}px) scale(${z})`;
+  $('#black').style.opacity = String(1 - prog(t, 0, 0.35));         /* out of S5's dark; no fade at the end: S7 opens on this frame */
+
+  /* the terminal; once the person is done with it, it goes back into the desktop (only its edge is in view after) */
+  const back = inout(prog(t, P.fix + 0.3, P.fix + 0.9)), away = inout(prog(t, P.more - 0.4, P.formats));   /* and further, behind the export */
+  $('#term').style.filter = `brightness(${(1 - 0.55 * back) * (1 - 0.6 * away)}) blur(${2.5 * away}px)`;
+  drawLog(t);
+  const ty = typedAt(t), blink = Math.floor(t * 2.2) % 2 === 0;
+  $('#typed').innerHTML = ty ? `<span class="${ty.fresh ? 'sel' : ''}">${ty.text}</span><span class="car"></span>`
+    : `<span class="ph">${t < P.paste ? 'Try "how do I…"' : ''}</span>${blink && termActive(t) ? '<span class="car" style="margin-left:-6px"></span>' : ''}`;
+  const ek = prog(t, P.esc - 0.12, P.esc), eo = prog(t, P.esc + 0.45, P.esc + 0.65);
+  $('#esc').style.opacity = String(clamp(ek * 4) * (1 - eo));
+  $('#esc').style.transform = `translateY(${t >= P.esc && t < P.esc + 0.12 ? 4 : 0}px)`;
+
+  /* the app: grows out of the address the terminal printed, to its place on the right */
+  const op = prog(t, P.open, P.open + 0.62), e = out5(op), from = LINK ?? [TERM[0] + 300, TERM[1] + 420];
+  $('#win').style.transformOrigin = e < 1 ? `${from[0] - WIN.x}px ${from[1] - WIN.y}px` : '0 0';
+  $('#win').style.transform = e < 1 ? `translate(${WIN.x}px, ${WIN.y}px) scale(${lerp(0.06, 1, e)})` : `translate(${WIN.x}px, ${WIN.y}px)`;
+  $('#win').style.opacity = String(clamp(op * 4));
+  $('#win').style.filter = `brightness(${1 - 0.22 * out3(prog(t, P.formats - 0.1, P.formats + 0.5))})`;
+  const waits = [seekTo($('#ui6'), Math.floor(clamp(t - P.rec0, 0, DUR - P.rec0 - 0.04) * 30 + 1e-6) / 30 + 0.5 / 30)];
+  drawChips(t);
+
+  /* the picture of the shot being dragged, which the system draws under the hand */
+  const g = $('#ghost'), dragging = t >= P.grab + 0.05 && t < P.drop;
+  const h = handAt(t), down = PRESS.some(([a, b]) => t >= a && t < b);
+  g.style.opacity = dragging && h ? '0.88' : '0';
+  if (dragging && h) { const gw = TG.clipBox[2] * WIN.k, gh = TG.clipBox[3] * WIN.k; g.style.width = `${gw}px`; g.style.height = `${gh}px`; g.style.transform = `translate(${h[0] - gw * 0.35}px, ${h[1] - gh * 0.3}px)`; }
+  /* the hand */
+  $('#cur').style.opacity = h ? '1' : '0';
+  if (h) $('#cur').style.transform = `translate(${h[0] - 5}px, ${h[1] - 3}px) scale(${(down ? 0.86 : 1) / Math.max(1, z * 0.75)})`;
+  return Promise.all(waits);
+}
+
+const loaded = (v) => new Promise((ok) => { if (v.readyState >= 2) ok(); else { v.addEventListener('loadeddata', ok, { once: true }); v.addEventListener('error', ok, { once: true }); } });
+const ready = (async () => {
+  [P, TG] = await Promise.all([fetch('lib/s6-plan.json').then((r) => r.json()), fetch('lib/s6-targets.json').then((r) => r.json())]);
+  TG.dialog ??= [330, 150, 940, 700];                                 /* a recording from before these were measured */
+  for (const [k, v] of Object.entries({ folder: [1330, 160], clip: [1520, 160], clipBox: [1460, 108, 124, 70], drop: [440, 780], ruler: [700, 724], edge: [720, 838], edgeTo: [700, 838], more: [1577, 16], menu: [1510, 55] })) TG[k] ??= v;
+  await words();
+  /* the type, loaded before the first frame (the terminal is laid out only once its lines come, and the formats are
+     measured to place them) */
+  await Promise.all([document.fonts.load("400 16.5px 'JetBrains Mono'", 'npx >'), document.fonts.load("400 16.5px 'Noto Sans SC'", '装好了想做什么视频'),
+    document.fonts.load('500 13px Geist', 'claude'), document.fonts.load("700 17px 'JetBrains Mono'", 'esc'), document.fonts.load('600 22px Geist', 'ProRes'),
+    document.fonts.load("600 22px 'Noto Sans SC'", '透明素材分轨音频字幕整个项目'), document.fonts.load("500 15px 'Geist Mono'", 'H.264'), loaded($('#ui6'))]);
+  await document.fonts.ready;
+  script(); cameraKeys(); handKeys(); chips();
+  drawLog(P.open); const a = $('#log .lnk'), wr = $('#world').getBoundingClientRect();
+  if (a) { const r = a.getBoundingClientRect(); LINK = [r.x + r.width / 2 - wr.x, r.y + r.height / 2 - wr.y]; }
+  $('#log').dataset.html = '';
+})();
+window.film = { get duration() { return DUR; }, ready, frame };
+</script>
+</body>
+</html>

@@ -1,0 +1,49 @@
+{
+  "about": "S6's moments, in s6.html's own seconds (its 0 is its clip's start in film.html), set by hand on its voice (lib/s6-voice.json): what the terminal shows, when Studio opens, when the agent writes the film, the interruption and the fix, the person's own edit (a shot from the assets dragged in over the second one, seen, trimmed to the end card, played), the export. ui-rec/rec-s6.mjs records Studio on these; s6.html draws the terminal, the windows, the camera, the one hand and the formats on them.",
+  "duration": 21.0143,
+  "rec0": 7.6,
+  "open": 7.84,
+  "paste": 2.07,
+  "send": 3.88,
+  "ask": [
+    4.5,
+    5.78
+  ],
+  "askSend": 5.98,
+  "reply": 6.2,
+  "steps": [
+    8.75,
+    9.2,
+    9.65,
+    10.1
+  ],
+  "play": [
+    8.8,
+    10.95
+  ],
+  "look": 10.5,
+  "esc": 12.38,
+  "fixType": [
+    12.62,
+    12.98
+  ],
+  "fixSend": 13.1,
+  "fix": 13.45,
+  "more": 17.25,
+  "menu": 17.58,
+  "formats": 18.1,
+  "project": 19.55,
+  "folder": 14.15,
+  "grab": 14.55,
+  "drop": 15.15,
+  "view": 15.45,
+  "viewAt": 6.0,
+  "trim": [
+    15.75,
+    16.15
+  ],
+  "play2": [
+    16.25,
+    16.9
+  ]
+}

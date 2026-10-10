@@ -1,0 +1,44 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>142 km</title>
+<style>
+  @font-face { font-family: 'Inter'; src: url(../fonts/inter-latin-var.woff2) format('woff2'); font-weight: 100 900; font-display: block; }
+  @font-face { font-family: 'JetBrains Mono'; src: url(../fonts/jbmono-500.woff2) format('woff2'); font-weight: 500; font-display: block; }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  html, body { width: 1920px; height: 1080px; overflow: hidden; background: transparent; }
+  body { font-family: Inter, sans-serif; color: #fff; -webkit-font-smoothing: antialiased; }
+  .mono { font-family: 'JetBrains Mono', monospace; font-weight: 500; }
+  .pg { position: absolute; inset: 0; }
+  #lab { position: absolute; left: 0; right: 0; top: 760px; text-align: center; font-size: 28px; letter-spacing: .5em; color: #111; }
+</style>
+</head>
+<body>
+<svg class="pg" width="1920" height="1080" viewBox="0 0 1920 1080"><defs><mask id="cut"><rect width="1920" height="1080" fill="#fff"/><text id="num" x="960" y="660" text-anchor="middle" fill="#000" style="font: 900 520px Inter, sans-serif; letter-spacing: -20px">142</text></mask></defs><rect id="snow" width="1920" height="1080" fill="#f3f4f6" mask="url(#cut)"/></svg>
+<div id="lab" class="mono">KILOMETRES OF SNOW</div>
+<script>
+const $ = (id) => document.getElementById(id);
+const clamp = (x) => Math.max(0, Math.min(1, x));
+const smooth = (x) => { x = clamp(x); return x * x * (3 - 2 * x); };
+const seg = (t, a, b) => smooth((t - a) / (b - a));
+const out3 = (x) => 1 - Math.pow(1 - clamp(x), 3);
+const out5 = (x) => 1 - Math.pow(1 - clamp(x), 5);
+const inout3 = (x) => { x = clamp(x); return x < 0.5 ? 4 * x * x * x : 1 - Math.pow(-2 * x + 2, 3) / 2; };
+const lerp = (a, b, k) => a + (b - a) * k;
+window.film = {
+  width: 1920, height: 1080,
+  duration: 3,
+  ready: document.fonts.load('900 520px Inter'),
+  frame(t) {
+    $('num').textContent = String(Math.round(142 * out3(t / 1.1))).padStart(3, '0');
+    const z = 1 + 9 * Math.pow(clamp((t - 1.7) / 1.0), 3);
+    $('num').setAttribute('transform', `translate(960 480) scale(${z}) translate(-960 -480)`);
+    $('snow').style.opacity = String(1 - seg(t, 2.4, 2.75));
+    $('lab').style.opacity = String(seg(t, 0.4, 0.8) * (1 - seg(t, 1.5, 1.8)));
+    $('lab').style.letterSpacing = `${0.5 + 0.2 * t}em`;
+  },
+};
+</script>
+</body>
+</html>

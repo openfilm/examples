@@ -1,0 +1,67 @@
+<!doctype html>
+<html lang="zh">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=1920, height=1080">
+<title>S3 — OpenFilm, free, open source, MIT</title>
+<link rel="stylesheet" href="lib/shared.css">
+<style>
+  /* the badges are clips like the mark's: as tall as its clips, its corner, its black; they snap onto a track under the name */
+  #badges { position: absolute; left: 0; top: 0; display: flex; gap: 16px; transform-origin: 0 0; }
+  .bd { height: 53px; padding: 0 24px; border-radius: 13px; display: flex; align-items: center; gap: 11px; white-space: nowrap;
+        font: 600 27px/1 'Noto Sans SC', sans-serif; letter-spacing: .05em; color: #f6f4f0; background: #121212;
+        box-shadow: 0 16px 30px -14px rgba(60, 40, 20, .5); }
+  .bd b { font: 600 27px/1 'Geist', sans-serif; letter-spacing: .01em; }
+  .bd svg { flex: none; }
+  /* the address in the name's black, after GitHub's mark */
+  #url { position: absolute; left: 0; top: 0; display: flex; align-items: center; gap: 12px; white-space: nowrap; transform-origin: 0 0;
+         font: 500 25px/1 'Geist Mono', monospace; color: #111111; letter-spacing: .01em; }
+  #url svg { flex: none; }
+  #black { position: absolute; inset: 0; background: #000; opacity: 0; }
+</style>
+</head>
+<body>
+<div id="card">
+  <div id="badges">
+    <div class="bd" id="b1"><svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="#f6f4f0" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6 9 17l-5-5"/></svg>免费</div>
+    <div class="bd" id="b2"><svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="#f6f4f0" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="m16 18 6-6-6-6M8 6l-6 6 6 6"/></svg>开源</div>
+    <div class="bd" id="b3"><b>MIT</b>协议</div>
+  </div>
+  <div id="url"><svg viewBox="0 0 16 16" width="28" height="28" fill="#111111" aria-hidden="true"><path d="M8 0C3.58 0 0 3.58 0 8c0 3.54 2.29 6.53 5.47 7.59.4.07.55-.17.55-.38 0-.19-.01-.82-.01-1.49-2.01.37-2.53-.49-2.69-.94-.09-.23-.48-.94-.82-1.13-.28-.15-.68-.52-.01-.53.63-.01 1.08.58 1.23.82.72 1.21 1.87.87 2.33.66.07-.52.28-.87.51-1.07-1.78-.2-3.64-.89-3.64-3.95 0-.87.31-1.59.82-2.15-.08-.2-.36-1.02.08-2.12 0 0 .67-.21 2.2.82.64-.18 1.32-.27 2-.27.68 0 1.36.09 2 .27 1.53-1.04 2.2-.82 2.2-.82.44 1.1.16 1.92.08 2.12.51.56.82 1.27.82 2.15 0 3.07-1.87 3.75-3.65 3.95.29.25.54.73.54 1.48 0 1.07-.01 1.93-.01 2.2 0 .21.15.46.55.38A8.01 8.01 0 0 0 16 8c0-4.42-3.58-8-8-8z"/></svg>github.com/openfilm/openfilm</div>
+</div>
+<div id="black"></div>
+<script type="module">
+import { clamp, lerp, prog, out3, outBack, fontsReady } from './lib/ease.js';
+/* where the logo is in the plate (blender/s3/out/track.json, frames 0–137 from film 12.433): the mark's top left and
+   bottom right, and the foot of the name's first letter; in logo-light.svg the mark is 96.76 units tall */
+const T0 = 12.433, MARK_H = 96.76, S_REF = 2.2;
+const $ = (s) => document.querySelector(s);
+let TRACK = null;
+const at = (t) => {
+  const f = clamp((t - T0) * 30, 0, TRACK.length - 1), a = Math.floor(f), b = Math.min(TRACK.length - 1, a + 1), k = f - a;
+  const m = (key) => TRACK[a][key].map((v, i) => lerp(v, TRACK[b][key][i], k));
+  return { tl: m('tl'), br: m('br'), word: m('word') };
+};
+function frame(tau) {
+  const t = tau + T0, q = at(t);
+  const s = (q.br[1] - q.tl[1]) / MARK_H, k = s / S_REF;            /* px per logo unit, and the card's scale */
+  /* under the name, from its first letter, clear of the p's tail */
+  const bx = q.word[0], by = q.word[1] + 30 * s;
+  $('#badges').style.transform = `translate(${bx}px, ${by}px) scale(${k})`;
+  /* 免费 · 开源 · MIT 协议: each slides in from the right as it is said and snaps into its place on the track */
+  [['#b1', 14.27], ['#b2', 14.79], ['#b3', 15.53]].forEach(([id, w]) => {
+    const p = prog(t, w - 0.12, w + 0.32), e = $(id);            /* in place first at w + 0.08, a little past, back */
+    e.style.transform = `translateX(${(1 - outBack(p, 1.2)) * 130}px)`;
+    e.style.opacity = String(clamp(p * 6));
+  });
+  const u = out3(prog(t, 15.95, 16.35));
+  $('#url').style.transform = `translate(${bx + 2 * k}px, ${by + (78 + (1 - u) * 12) * k}px) scale(${k})`;
+  $('#url').style.opacity = String(u);
+  /* the camera dives into the playhead: the card goes with the light, and the last frames are black */
+  $('#card').style.opacity = String(1 - prog(t, 16.58, 16.72));
+  $('#black').style.opacity = String(prog(t, 16.92, 17.0));
+}
+window.film = { duration: 4.6, ready: Promise.all([fetch('blender/s3/out/track.json').then((r) => r.json()).then((j) => { TRACK = Object.keys(j).sort((a, b) => a - b).map((f) => j[f]); }), fontsReady()]), frame };
+</script>
+</body>
+</html>

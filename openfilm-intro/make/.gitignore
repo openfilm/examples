@@ -1,0 +1,4 @@
+# what the scripts write: renders, frames, logs, the browser's packages
+out/
+node_modules/
+package-lock.json

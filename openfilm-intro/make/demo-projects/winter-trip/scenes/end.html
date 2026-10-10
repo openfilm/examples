@@ -1,0 +1,48 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>End — Into the White</title>
+<style>
+  @font-face { font-family: 'Inter'; src: url(../fonts/inter-latin-var.woff2) format('woff2'); font-weight: 100 900; font-display: block; }
+  @font-face { font-family: 'JetBrains Mono'; src: url(../fonts/jbmono-500.woff2) format('woff2'); font-weight: 500; font-display: block; }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  html, body { width: 1920px; height: 1080px; overflow: hidden; background: transparent; }
+  body { font-family: Inter, sans-serif; color: #fff; -webkit-font-smoothing: antialiased; }
+  .mono { font-family: 'JetBrains Mono', monospace; font-weight: 500; }
+  .pg { position: absolute; inset: 0; }
+  body { --shade: 0; background: linear-gradient(180deg, rgba(8,12,18,0) 30%, rgba(8,12,18,calc(.5 * var(--shade))) 100%); }
+  #lock { position: absolute; left: 0; right: 0; top: 380px; text-align: center; }
+  #title { font: 800 150px/1 Inter, sans-serif; white-space: nowrap; }
+  #sub { margin-top: 30px; font-size: 26px; letter-spacing: .5em; white-space: nowrap; }
+  .rl { position: absolute; top: 75px; height: 3px; background: #fff; }
+  .dot { display: inline-block; width: 14px; height: 14px; border-radius: 50%; background: #e5432d; margin: 0 18px 3px; vertical-align: middle; }
+</style>
+</head>
+<body>
+<div id="lock"><span class="rl" id="l1"></span><span class="rl" id="l2"></span><h1 id="title">INTO THE WHITE</h1><p class="mono" id="sub">A WINTER ROAD TRIP<span class="dot"></span>2026</p></div>
+<script>
+const $ = (id) => document.getElementById(id);
+const clamp = (x) => Math.max(0, Math.min(1, x));
+const smooth = (x) => { x = clamp(x); return x * x * (3 - 2 * x); };
+const seg = (t, a, b) => smooth((t - a) / (b - a));
+const out3 = (x) => 1 - Math.pow(1 - clamp(x), 3);
+const out5 = (x) => 1 - Math.pow(1 - clamp(x), 5);
+const inout3 = (x) => { x = clamp(x); return x < 0.5 ? 4 * x * x * x : 1 - Math.pow(-2 * x + 2, 3) / 2; };
+const lerp = (a, b, k) => a + (b - a) * k;
+window.film = {
+  width: 1920, height: 1080,
+  duration: 3.5,
+  ready: document.fonts.load('800 150px Inter').then(() => document.fonts.load("500 26px 'JetBrains Mono'")),
+  frame(t) {
+    $('title').style.letterSpacing = `${lerp(0.45, -0.03, out5((t - 0.2) / 1.6))}em`;
+    $('title').style.opacity = String(seg(t, 0.2, 0.7));
+    $('sub').style.opacity = String(seg(t, 0.9, 1.4));
+    const w = 260 * out3((t - 0.6) / 0.8);
+    $('l1').style.cssText = `left:${960 - 620 - w}px;width:${w}px`; $('l2').style.cssText = `left:${960 + 620}px;width:${w}px`;
+    document.body.style.setProperty('--shade', String(seg(t, 0, 0.6)));
+  },
+};
+</script>
+</body>
+</html>

@@ -1,0 +1,33 @@
+<!doctype html>
+<html lang="zh">
+<head>
+<meta charset="utf-8">
+<style>
+  @font-face { font-family: 'Bodoni Moda'; font-weight: 500; src: url(../fonts/bodoni-moda-latin-500-normal.woff2) format('woff2'); font-display: block; }
+  @font-face { font-family: 'Noto Sans SC'; src: url(../fonts/NotoSansSC.ttf); font-weight: 100 900; font-display: block; }
+  html, body { margin: 0; width: 1920px; height: 1080px; overflow: hidden; background: transparent; }
+  #line { position: absolute; right: 150px; bottom: 150px; text-align: right; color: #f3e7cf; text-shadow: 0 2px 18px rgba(0,0,0,.4); }
+  #edp { font: 500 30px/1 'Bodoni Moda', serif; letter-spacing: .42em; white-space: nowrap; }
+  #rule { height: 1.5px; margin: 26px 0 24px auto; background: rgba(243,231,207,.75); transform-origin: 100% 50%; width: 360px; }
+  #cn { font: 300 28px/1 'Noto Sans SC', sans-serif; letter-spacing: .32em; white-space: nowrap; color: rgba(243,231,207,.86); }
+</style>
+</head>
+<body>
+<div id="line"><div id="edp">EAU DE PARFUM</div><div id="rule"></div><div id="cn">黄昏 · 红色马蹄莲</div></div>
+<script>
+const $ = (id) => document.getElementById(id);
+const clamp = (x) => Math.min(1, Math.max(0, x));
+const ease = (a, b, t) => { const x = clamp((t - a) / (b - a)); return 1 - Math.pow(1 - x, 4); };
+window.film = {
+  duration: 4.1,
+  ready: document.fonts.ready,
+  frame(t) {
+    const a = ease(0.2, 1.2, t), r = ease(0.6, 1.5, t), c = ease(0.9, 1.9, t), out = clamp((t - 3.6) / 0.5);
+    $('edp').style.opacity = String(a * (1 - out)); $('edp').style.letterSpacing = `${0.62 - 0.2 * a}em`;
+    $('rule').style.transform = `scaleX(${r})`; $('rule').style.opacity = String(1 - out);
+    $('cn').style.opacity = String(c * (1 - out)); $('cn').style.transform = `translateY(${(1 - c) * 10}px)`;
+  },
+};
+</script>
+</body>
+</html>

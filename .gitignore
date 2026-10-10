@@ -1,0 +1,15 @@
+# Studio's own state (history, logs, the agent's sessions, caches): an example is only what plays the film, with
+# the film's settings (frame rate, the subtitles' style and markers)
+.film/*
+!.film/settings.json
+!.film/subtitles.json
+!.film/markers.json
+.git-history/
+# outputs and system files
+node_modules/
+*.log
+*.blend1
+__pycache__/
+.DS_Store
+# being prepared for publishing (see README of each when it lands)
+intro/

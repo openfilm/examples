@@ -1,0 +1,46 @@
+<!doctype html>
+<html>
+<head>
+<meta charset="utf-8">
+<style>
+  html, body { margin: 0; width: 420px; height: 250px; overflow: hidden; background: transparent; }
+  canvas { position: absolute; left: 0; top: 0; width: 420px; height: 250px; }
+</style>
+</head>
+<body>
+<canvas id="c" width="840" height="500"></canvas>
+<script>
+/* a low winter sun in the sky the person boxed: a white core, a warm halo that fades out well inside the box, a faint
+   streak across it, a few soft rays, breathing a little */
+const c = document.getElementById('c'), g = c.getContext('2d');
+window.film = {
+  duration: 3, width: 420, height: 250,
+  frame(t) {
+    const W = 840, H = 500, x = W * 0.5, y = H * 0.5, k = 1 + 0.035 * Math.sin(t * 2.2), on = Math.min(1, t / 0.35);
+    g.clearRect(0, 0, W, H);
+    g.globalAlpha = on;
+    const halo = g.createRadialGradient(x, y, 0, x, y, 228 * k);
+    halo.addColorStop(0, 'rgba(255,238,206,.9)'); halo.addColorStop(0.16, 'rgba(255,216,165,.54)');
+    halo.addColorStop(0.5, 'rgba(255,192,132,.15)'); halo.addColorStop(1, 'rgba(255,184,120,0)');
+    g.fillStyle = halo; g.fillRect(0, 0, W, H);
+    g.save(); g.translate(x, y);
+    for (let i = 0; i < 9; i++) {                                    /* rays, turning very slowly */
+      const a = i * 0.698 + t * 0.06, len = 150 + 40 * Math.sin(i * 2.3);
+      const r = g.createLinearGradient(0, 0, Math.cos(a) * len, Math.sin(a) * len);
+      r.addColorStop(0, 'rgba(255,240,215,.22)'); r.addColorStop(1, 'rgba(255,240,215,0)');
+      g.fillStyle = r; g.beginPath(); g.moveTo(0, 0);
+      g.arc(0, 0, len, a - 0.035, a + 0.035); g.closePath(); g.fill();
+    }
+    g.restore();
+    const s = g.createLinearGradient(x - 380, 0, x + 380, 0);            /* the streak */
+    s.addColorStop(0, 'rgba(255,226,190,0)'); s.addColorStop(0.5, 'rgba(255,240,220,.42)'); s.addColorStop(1, 'rgba(255,226,190,0)');
+    g.fillStyle = s; g.fillRect(x - 380, y - 2.5, 760, 5);
+    const core = g.createRadialGradient(x, y, 0, x, y, 50);
+    core.addColorStop(0, 'rgba(255,255,250,1)'); core.addColorStop(0.55, 'rgba(255,250,236,.92)'); core.addColorStop(1, 'rgba(255,244,222,0)');
+    g.fillStyle = core; g.beginPath(); g.arc(x, y, 50, 0, 6.283); g.fill();
+    g.globalAlpha = 1;
+  },
+};
+</script>
+</body>
+</html>

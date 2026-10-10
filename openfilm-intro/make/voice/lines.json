@@ -1,0 +1,15 @@
+{
+  "about": "The narration as it was sent to ElevenLabs, one request a line. take: the file in assets/audio/vo the film plays.",
+  "model": "eleven_v4",
+  "voice": "i2gDhHnLj4CvKBpf3gPR",
+  "lines": {
+    "l1": { "take": "l1-v2", "text": "为了不再剪视频，我做了一个通用的视频Agent。" },
+    "l2": { "take": "l2-v2", "text": "它能把Codex、Claude Code，或者任何一个AI Agent，变成会做视频的剪辑师。" },
+    "l3": { "take": "l3-v2", "text": "它叫OpenFilm，免费开源，MIT协议。" },
+    "l4": { "take": "l4-v4", "text": "一句话交给它：剪口播、挑素材、加字幕、配B-roll、调色、做MG动画、配音配乐。从产品片、广告、知识讲解，到绘本、课件、MV等等，它都能做。" },
+    "l5": { "take": "l5-v3", "text": "做完哪里不满意？点一下就能改：位置、大小、旋转、颜色，更多属性都在右边。不只是文字，图形、视频也一样。说不清的地方，框起来告诉 Agent，它来改。" },
+    "l6": { "take": "l6-v2", "text": "用法也简单：把这行命令发给你的Agent，再告诉它你想做什么视频。编辑器会自己打开，片子一点点长出来。中途不满意，随时打断它，或者自己上手改。做完直接导出任意视频格式或者工程文件。" },
+    "l7": { "take": "l7-v5", "text": "对了，你刚看完的这条视频，就是它剪的。我做它，是希望以后每个心里有故事的人，都不会因为不会做视频，而留下遗憾。想试试？一行命令就能装，或者直接下个客户端。它还很年轻，我会一直更新。现在关注，就当免费入股；一键三连，是我熬夜更新的最大动力。最后，你最想让它帮你剪什么？评论区告诉我。点赞最高的那条，我一定让它剪出来。下期见！",
+            "note": "The take in the film joins two requests at 最后: everything before it from one, the last paragraph from another." }
+  }
+}

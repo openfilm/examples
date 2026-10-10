@@ -1,0 +1,58 @@
+<!doctype html>
+<html lang="zh">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=1920, height=1080">
+<title>S2 — any agent, an editor</title>
+<link rel="stylesheet" href="lib/shared.css">
+<style>
+  /* the cast's names under them, and the line's last words above them, on the bright stage (blender/s2) */
+  .lab { position: absolute; left: 0; top: 0; white-space: nowrap; font: 600 30px/1 'Geist', sans-serif; letter-spacing: -0.01em; color: rgba(28,27,25,.78); transform-origin: 50% 0; }
+  .lab.claude { color: #c15f3c; }
+  #kick { position: absolute; left: 0; right: 0; top: 150px; text-align: center; font: 600 50px/1 'Noto Sans SC', sans-serif; letter-spacing: .12em; color: rgba(28,27,25,.62); }
+  #big { position: absolute; left: 0; right: 0; top: 214px; margin: 0; text-align: center; font: 900 196px/1 'Noto Sans SC', sans-serif; letter-spacing: .04em; color: #161513; }
+  #big span { display: inline-block; }
+</style>
+</head>
+<body>
+<div id="labels"></div>
+<div id="kick">会做视频的</div>
+<h1 id="big"><span>剪</span><span>辑</span><span>师</span></h1>
+<script type="module">
+import { clamp, lerp, prog, out3, out5, spring, fontsReady } from './lib/ease.js';
+const T0 = 5.433, FRAMES = 210;                 /* this page is film 5.433 → 12.433; the track is frame by frame from 0 */
+const NAMES = { codex: 'Codex', clawd: 'Claude Code', gemini: 'Gemini CLI', copilot: 'GitHub Copilot', cursor: 'Cursor', opencode: 'OpenCode', devin: 'Devin', workbuddy: 'WorkBuddy' };
+const LAND = { codex: 6.04, clawd: 6.96, gemini: 7.70, copilot: 7.86, cursor: 8.02, opencode: 8.18, devin: 8.34, workbuddy: 8.50 };
+const $ = (s) => document.querySelector(s);
+const labs = Object.fromEntries(Object.entries(NAMES).map(([k, v]) => { const d = document.createElement('div'); d.className = `lab ${k === 'clawd' ? 'claude' : ''}`; d.id = `lab-${k}`; d.textContent = v; $('#labels').append(d); return [k, d]; }));
+const bigs = [...document.querySelectorAll('#big span')];
+let TRACK = null;
+const at = (t) => { const f = clamp((t - T0) * 30, 0, FRAMES - 1), a = Math.floor(f), b = Math.min(FRAMES - 1, a + 1), k = f - a; return [TRACK[a], TRACK[b], k]; };
+function frame(tau) {
+  const t = tau + T0;
+  const [A, B, k] = at(t);
+  for (const [n, d] of Object.entries(labs)) {
+    const fa = A[n].foot, fb = B[n].foot, ta = A[n].top, tb = B[n].top;
+    const x = lerp(fa[0], fb[0], k), y = lerp(fa[1], fb[1], k), h = lerp(fa[1] - ta[1], fb[1] - tb[1], k);
+    const size = clamp(h * 0.13, 17, 40);
+    const s = out3(prog(t, LAND[n] + 0.06, LAND[n] + 0.42));
+    d.style.fontSize = `${size}px`;
+    d.style.transform = `translate(${x - d.offsetWidth / 2}px, ${y + size * 0.6 + (1 - s) * 14}px)`;   /* on the floor under its tile, clear of it as it bounces */
+    d.style.opacity = String(s * (1 - prog(t, 12.1, 12.38)));
+  }
+  /* 会做视频的 as it is said; 剪辑师 lands with every stick at once (10.89) */
+  const kk = out5(prog(t, 9.95, 10.4));
+  $('#kick').style.opacity = String(kk * (1 - prog(t, 12.1, 12.38)));
+  $('#kick').style.transform = `translateY(${(1 - kk) * 18}px)`;
+  bigs.forEach((c, i) => {
+    const a = 10.86 + i * 0.03, p = prog(t, a, a + 0.5);
+    const s = t < a ? 0 : 1 + 0.35 * (1 - spring(p, 2.2, 7));
+    c.style.transform = `scale(${s})`;
+    c.style.opacity = String(t < a ? 0 : clamp(p * 8) * (1 - prog(t, 12.1, 12.38)));
+    c.style.filter = `blur(${(1 - clamp(p * 4)) * 10}px)`;
+  });
+}
+window.film = { duration: 7.0, ready: Promise.all([fetch('blender/s2/out/track.json').then((r) => r.json()).then((j) => { TRACK = j; }), fontsReady()]), frame };
+</script>
+</body>
+</html>

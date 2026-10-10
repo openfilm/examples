@@ -1,0 +1,10 @@
+/* What every shot of section 1 shares: the type, the colours of the night. */
+@font-face { font-family: 'Geist'; src: url(../fonts/Geist.ttf); font-weight: 100 900; font-display: block; }
+@font-face { font-family: 'Geist Mono'; src: url(../fonts/GeistMono.ttf); font-weight: 100 900; font-display: block; }
+@font-face { font-family: 'Noto Sans SC'; src: url(../fonts/NotoSansSC.ttf); font-weight: 100 900; font-display: block; }
+@font-face { font-family: 'JetBrains Mono'; src: url(../fonts/JetBrainsMono.ttf); font-weight: 100 800; font-display: block; }
+:root { --ink: #f4f1ec; --dim: #8b8f98; --night: #07080a; --clawd: #d97757; --line: rgba(255,255,255,.08); }
+* { box-sizing: border-box; }
+html, body { margin: 0; width: 1920px; height: 1080px; overflow: hidden; background: transparent; }
+body { font-family: 'Geist', 'Noto Sans SC', sans-serif; color: var(--ink); -webkit-font-smoothing: antialiased; text-rendering: geometricPrecision; }
+.abs { position: absolute; }

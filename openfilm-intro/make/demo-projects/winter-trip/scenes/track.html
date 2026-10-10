@@ -1,0 +1,93 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Track — the car from above</title>
+<style>
+  @font-face { font-family: 'Inter'; src: url(../fonts/inter-latin-var.woff2) format('woff2'); font-weight: 100 900; font-display: block; }
+  @font-face { font-family: 'JetBrains Mono'; src: url(../fonts/jbmono-500.woff2) format('woff2'); font-weight: 500; font-display: block; }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  html, body { width: 1920px; height: 1080px; overflow: hidden; background: transparent; }
+  body { font-family: Inter, sans-serif; color: #fff; -webkit-font-smoothing: antialiased; }
+  .mono { font-family: 'JetBrains Mono', monospace; font-weight: 500; }
+  .pg { position: absolute; inset: 0; }
+  #xh i { position: absolute; background: rgba(255,255,255,.55); }
+  #ret { position: absolute; width: 0; height: 0; }
+  #ret .box { position: absolute; left: -64px; top: -64px; width: 128px; height: 128px; }
+  #ret .box i { position: absolute; width: 30px; height: 30px; border: 0 solid #ff3b30; }
+  #ret .box .a { left: 0; top: 0; border-left-width: 4px; border-top-width: 4px; } #ret .box .b { right: 0; top: 0; border-right-width: 4px; border-top-width: 4px; }
+  #ret .box .c { left: 0; bottom: 0; border-left-width: 4px; border-bottom-width: 4px; } #ret .box .d { right: 0; bottom: 0; border-right-width: 4px; border-bottom-width: 4px; }
+  #ret svg { position: absolute; left: -110px; top: -110px; }
+  #label { position: absolute; left: 150px; top: -88px; padding: 12px 18px; background: #ff3b30; font-size: 22px; letter-spacing: .12em; white-space: nowrap; line-height: 1.35; }
+  #speed { display: block; font: 800 46px/1 Inter, sans-serif; letter-spacing: -.01em; margin-top: 4px; }
+  #lead { position: absolute; left: 64px; top: -40px; width: 86px; height: 2px; background: #ff3b30; transform-origin: 0 0; }
+  #map { position: absolute; left: 80px; top: 80px; width: 500px; height: 336px; border-radius: 26px; background: rgba(255,255,255,.95); box-shadow: 0 30px 80px -30px rgba(0,0,0,.45); padding: 30px 34px; color: #111; }
+  #map h4 { font-size: 20px; letter-spacing: .24em; color: #8a8a8a; font-weight: 500; }
+  #km { position: absolute; left: 34px; top: 64px; font: 800 52px/1 Inter, sans-serif; letter-spacing: -0.02em; font-variant-numeric: tabular-nums; }
+  #km small { font-size: 22px; color: #8a8a8a; margin-left: 5px; letter-spacing: 0; }
+  #map svg { position: absolute; left: 50px; top: 132px; }
+  #map .lbl { position: absolute; font-size: 17px; color: #5f5f5f; letter-spacing: .1em; }
+  #elev { position: absolute; left: 80px; right: 80px; bottom: 70px; height: 120px; }
+  #elevt { position: absolute; left: 0; top: -36px; font-size: 20px; letter-spacing: .2em; }
+</style>
+</head>
+<body>
+<div id="xh"><i id="xv"></i><i id="xhz"></i></div>
+<div id="ret"><svg width="220" height="220" viewBox="-110 -110 220 220"><circle id="ring" r="96" fill="none" stroke="rgba(255,255,255,.85)" stroke-width="2.5" stroke-dasharray="10 12"/></svg><div class="box"><i class="a"></i><i class="b"></i><i class="c"></i><i class="d"></i></div><div id="lead"></div><div id="label" class="mono">TARGET · VOLVO S60<span id="speed">64 km/h</span></div></div>
+<div id="map"><h4 class="mono">ROUTE · DAY 2</h4><div id="km"><span id="kmn">41.200</span><small>km</small></div>
+  <svg width="400" height="170" viewBox="0 0 400 170"><path d="M14 150 C 70 140, 100 60, 160 74 S 250 150, 292 98 S 360 28, 388 24" fill="none" stroke="#ececec" stroke-width="8" stroke-linecap="round"/><path id="route" d="M14 150 C 70 140, 100 60, 160 74 S 250 150, 292 98 S 360 28, 388 24" fill="none" stroke="#e5432d" stroke-width="8" stroke-linecap="round"/><circle cx="14" cy="150" r="10" fill="#111"/><circle id="dot" r="12" fill="#e5432d" stroke="#fff" stroke-width="5"/></svg>
+  <span class="lbl mono" style="left:34px;bottom:24px">START</span><span class="lbl mono" style="right:34px;top:34px">CABIN · 64 KM</span></div>
+<div id="elev"><span class="mono" id="elevt">ELEV 312 M</span><svg width="1760" height="120" viewBox="0 0 1760 120" preserveAspectRatio="none"><path id="climb" d="M0 96 L120 88 L220 92 L340 70 L460 74 L560 52 L680 60 L800 40 L920 46 L1040 30 L1160 38 L1280 20 L1400 26 L1520 12 L1640 18 L1760 8" fill="none" stroke="#fff" stroke-width="4"/><circle id="cdot" r="9" fill="#e5432d" stroke="#fff" stroke-width="4"/></svg></div>
+<script>
+const $ = (id) => document.getElementById(id);
+const clamp = (x) => Math.max(0, Math.min(1, x));
+const smooth = (x) => { x = clamp(x); return x * x * (3 - 2 * x); };
+const seg = (t, a, b) => smooth((t - a) / (b - a));
+const out3 = (x) => 1 - Math.pow(1 - clamp(x), 3);
+const out5 = (x) => 1 - Math.pow(1 - clamp(x), 5);
+const inout3 = (x) => { x = clamp(x); return x < 0.5 ? 4 * x * x * x : 1 - Math.pow(-2 * x + 2, 3) / 2; };
+const lerp = (a, b, k) => a + (b - a) * k;
+/* where the car is in the footage, 30 times a second (measured from snow-drive.mp4 37.6–40.6 s) */
+const TRACK = [[0.5062,0.5967],[0.5062,0.5954],[0.5062,0.5936],[0.5062,0.5924],[0.5059,0.5907],[0.5059,0.5883],[0.5055,0.5858],[0.5052,0.5827],[0.5048,0.5802],[0.5045,0.5778],[0.5041,0.5753],[0.5038,0.5728],[0.5034,0.5704],[0.5034,0.5679],[0.5031,0.5654],[0.5031,0.5624],[0.5028,0.5593],[0.5028,0.5562],[0.5024,0.5537],[0.5021,0.5506],[0.5017,0.5481],[0.5014,0.5451],[0.501,0.5426],[0.5007,0.5395],[0.5003,0.5364],[0.5,0.5339],[0.4993,0.5315],[0.499,0.529],[0.4986,0.5271],[0.4983,0.5253],[0.4979,0.5234],[0.4976,0.5197],[0.4969,0.516],[0.4962,0.5123],[0.4959,0.5074],[0.4955,0.5018],[0.4952,0.4963],[0.4948,0.4907],[0.4903,0.4858],[0.4854,0.4809],[0.4806,0.479],[0.4802,0.4784],[0.4757,0.4741],[0.4705,0.4691],[0.466,0.4648],[0.4656,0.4605],[0.4653,0.4562],[0.4691,0.4512],[0.4732,0.4469],[0.4774,0.4401],[0.4774,0.4327],[0.4816,0.4296],[0.4864,0.4284],[0.4906,0.4278],[0.4906,0.4265],[0.4906,0.4253],[0.4906,0.4241],[0.4906,0.4228],[0.4906,0.4228],[0.4906,0.4228],[0.4906,0.4228],[0.4906,0.4222],[0.4903,0.4204],[0.4899,0.4179],[0.4896,0.4136],[0.4892,0.4092],[0.4885,0.4049],[0.4882,0.4],[0.4878,0.3951],[0.4872,0.3901],[0.4868,0.387],[0.4868,0.3846],[0.4868,0.3839],[0.4868,0.3852],[0.4868,0.3864],[0.4872,0.387],[0.4872,0.3833],[0.4872,0.3796],[0.4872,0.3753],[0.4868,0.3697],[0.4865,0.3648],[0.4861,0.3592],[0.4858,0.3543],[0.4854,0.3494],[0.4851,0.345],[0.4847,0.3457],[0.4844,0.3458],[0.4844,0.3468],[0.4844,0.3481],[0.4844,0.3489]];
+const D = 3;
+const rLen = $('route').getTotalLength(); $('route').style.strokeDasharray = `${rLen} ${rLen}`;
+const cLen = $('climb').getTotalLength(); $('climb').style.strokeDasharray = `${cLen} ${cLen}`;
+window.film = {
+  width: 1920, height: 1080,
+  duration: D,
+  ready: document.fonts.load('800 52px Inter').then(() => document.fonts.load("500 20px 'JetBrains Mono'")),
+  frame(t) {
+    const out = seg(t, D - 0.25, D);
+    const [cx, cy] = TRACK[Math.max(0, Math.min(TRACK.length - 1, Math.round(t * 30)))];
+    const lock = out5((t - 0.15) / 0.45);
+    $('ret').style.left = `${cx * 1920}px`; $('ret').style.top = `${cy * 1080}px`;
+    $('ret').style.opacity = String(seg(t, 0.1, 0.25) * (1 - out));
+    $('ret').querySelector('.box').style.transform = `scale(${2.2 - 1.2 * lock})`;
+    $('ring').style.transform = `rotate(${t * 90}deg)`;
+    const lk = out3((t - 0.5) / 0.4);
+    $('label').style.opacity = String(lk); $('label').style.transform = `translateX(${(1 - lk) * -20}px)`;
+    $('lead').style.transform = `rotate(-24deg) scaleX(${lk})`;
+    const xo = 0.6 * seg(t, 0.1, 0.4) * (1 - out);
+    $('xv').style.cssText = `left:${cx * 1920}px;top:0;bottom:0;width:2px;opacity:${xo}`;
+    $('xhz').style.cssText = `top:${cy * 1080}px;left:0;right:0;height:2px;opacity:${xo}`;
+    /* one model for every number: speed (km/h), the odometer it adds up, the route and the climb at that point */
+    const kmh = 62 + 4 * Math.sin(t * 2.1);
+    const odo = 41.2 + (62 * t + (4 / 2.1) * (1 - Math.cos(t * 2.1))) / 3600;
+    const at = odo / 64;
+    $('speed').textContent = `${Math.round(kmh)} km/h`;
+    const mk = out3((t - 0.25) / 0.5), rk = inout3((t - 0.4) / 0.7);
+    $('map').style.opacity = String(mk * (1 - out)); $('map').style.transform = `translateY(${(1 - mk) * 30}px)`;
+    $('route').style.strokeDashoffset = String(rLen * (1 - at * rk));
+    const p = $('route').getPointAtLength(rLen * at * rk); $('dot').setAttribute('cx', p.x); $('dot').setAttribute('cy', p.y);
+    $('kmn').textContent = odo.toFixed(3);
+    const ek = inout3((t - 0.3) / 0.8);
+    $('climb').style.strokeDashoffset = String(cLen * (1 - ek));
+    const cp = $('climb').getPointAtLength(cLen * at);
+    $('cdot').setAttribute('cx', cp.x); $('cdot').setAttribute('cy', cp.y); $('cdot').style.opacity = String(seg(t, 0.9, 1.1));
+    $('elev').style.opacity = String(seg(t, 0.2, 0.5) * (1 - out));
+    $('elevt').textContent = `ELEV ${Math.round(312 + 286 * (1 - cp.y / 96))} M`;
+  },
+};
+</script>
+</body>
+</html>

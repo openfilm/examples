@@ -1,0 +1,9 @@
+{
+  "name": "openfilm-intro-make",
+  "private": true,
+  "description": "What the OpenFilm intro's Premiere replica (blender/s1/pr) is rendered with.",
+  "license": "MIT",
+  "dependencies": {
+    "playwright-core": "1.61.1"
+  }
+}

@@ -1,0 +1,33 @@
+{
+  "on": true,
+  "pos": {
+    "x": 0.5,
+    "y": 0.94
+  },
+  "maxWidthPct": 100,
+  "align": "center",
+  "font": {
+    "family": "ui-sans-serif, system-ui, -apple-system, \"PingFang SC\", \"Hiragino Sans GB\", \"Microsoft YaHei\", \"Helvetica Neue\", Arial, sans-serif",
+    "sizePct": 4.3,
+    "weight": 500,
+    "italic": false,
+    "letterSpacingEm": 0.04,
+    "lineHeight": 1.45,
+    "upper": false
+  },
+  "fill": "#ffffff",
+  "stroke": {
+    "widthEm": 0.03,
+    "color": "rgba(0,0,0,0.84)"
+  },
+  "shadow": {
+    "dxEm": 0,
+    "dyEm": 0.04,
+    "blurEm": 0.165,
+    "color": "rgba(0,0,0,0.58)"
+  },
+  "box": null,
+  "karaoke": null,
+  "language": null,
+  "bilingual": false
+}

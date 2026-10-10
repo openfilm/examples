@@ -1,0 +1,53 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Days — one panel per day</title>
+<style>
+  @font-face { font-family: 'Inter'; src: url(../fonts/inter-latin-var.woff2) format('woff2'); font-weight: 100 900; font-display: block; }
+  @font-face { font-family: 'JetBrains Mono'; src: url(../fonts/jbmono-500.woff2) format('woff2'); font-weight: 500; font-display: block; }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  html, body { width: 1920px; height: 1080px; overflow: hidden; background: transparent; }
+  body { font-family: Inter, sans-serif; color: #fff; -webkit-font-smoothing: antialiased; }
+  .mono { font-family: 'JetBrains Mono', monospace; font-weight: 500; }
+  .pg { position: absolute; inset: 0; }
+  .p { position: absolute; top: 0; bottom: 0; width: 628px; overflow: hidden; background: #111; }
+  .p video { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; }
+  .p .n { position: absolute; left: 34px; top: 34px; font-size: 26px; letter-spacing: .3em; white-space: nowrap; }
+  .p .k { position: absolute; left: 34px; bottom: 34px; font: 800 72px/1 Inter, sans-serif; letter-spacing: -.02em; white-space: nowrap; }
+  .p .k small { font: 500 24px/1 'JetBrains Mono', monospace; letter-spacing: .2em; margin-left: 10px; }
+</style>
+</head>
+<body>
+<div class="p" style="left:0"><video src="../assets/video/snow-drive.mp4" muted playsinline preload="auto"></video><div class="n mono">DAY 01</div><div class="k">58<small>KM</small></div></div>
+<div class="p" style="left:646px"><video src="../assets/video/snow-drive.mp4" muted playsinline preload="auto"></video><div class="n mono">DAY 02</div><div class="k">64<small>KM</small></div></div>
+<div class="p" style="left:1292px"><video src="../assets/video/snow-drive.mp4" muted playsinline preload="auto"></video><div class="n mono">DAY 03</div><div class="k">20<small>KM</small></div></div>
+<script>
+const $ = (id) => document.getElementById(id);
+const clamp = (x) => Math.max(0, Math.min(1, x));
+const smooth = (x) => { x = clamp(x); return x * x * (3 - 2 * x); };
+const seg = (t, a, b) => smooth((t - a) / (b - a));
+const out3 = (x) => 1 - Math.pow(1 - clamp(x), 3);
+const out5 = (x) => 1 - Math.pow(1 - clamp(x), 5);
+const inout3 = (x) => { x = clamp(x); return x < 0.5 ? 4 * x * x * x : 1 - Math.pow(-2 * x + 2, 3) / 2; };
+const lerp = (a, b, k) => a + (b - a) * k;
+/* three moments of the same drive, one per panel (seconds into snow-drive.mp4) */
+const FROM = [7.4, 40.6, 32.6];
+const panels = [...document.querySelectorAll('.p')];
+const loaded = (v) => new Promise((ok) => (v.readyState >= 2 ? ok() : v.addEventListener('loadeddata', ok, { once: true })));
+window.film = {
+  width: 1920, height: 1080,
+  duration: 2,
+  ready: Promise.all([document.fonts.load('800 72px Inter'), ...panels.map((p) => loaded(p.querySelector('video')))]),
+  frame(t) {
+    panels.forEach((p, i) => {
+      const k = out5((t - i * 0.12) / 0.55);
+      p.style.clipPath = `inset(${(1 - k) * 100}% 0 0 0)`;
+      p.querySelector('.k').style.transform = `translateY(${(1 - out3((t - 0.3 - i * 0.12) / 0.5)) * 40}px)`;
+      p.querySelector('video').currentTime = FROM[i] + t;
+    });
+  },
+};
+</script>
+</body>
+</html>
