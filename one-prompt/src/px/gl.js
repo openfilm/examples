@@ -170,9 +170,12 @@ export function scaleContext2D(c, s) {
     const d = Object.getOwnPropertyDescriptor(proto, k);
     Object.defineProperty(c, k, { configurable: true, get() { return d.get.call(this) / s; }, set(v) { d.set.call(this, v * s); } });
   }
+  /* a browser without canvas filters (Safari) has nothing to scale: the drawing goes on without them */
   const fd = Object.getOwnPropertyDescriptor(proto, 'filter');
-  const px = (v, k) => v.replace(/(-?(?:\d+\.?\d*|\.\d+)(?:e[+-]?\d+)?)px/gi, (_, n) => `${+n * k}px`);
-  Object.defineProperty(c, 'filter', { configurable: true, get() { return px(fd.get.call(this), 1 / s); }, set(v) { fd.set.call(this, px(String(v), s)); } });
+  if (fd?.get && fd?.set) {
+    const px = (v, k) => v.replace(/(-?(?:\d+\.?\d*|\.\d+)(?:e[+-]?\d+)?)px/gi, (_, n) => `${+n * k}px`);
+    Object.defineProperty(c, 'filter', { configurable: true, get() { return px(fd.get.call(this), 1 / s); }, set(v) { fd.set.call(this, px(String(v), s)); } });
+  }
   setT.call(c, s, 0, 0, s, 0, 0);
   return c;
 }
