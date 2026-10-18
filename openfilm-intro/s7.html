@@ -11,10 +11,10 @@
      icon); ideas people sit on, handwritten, each turning into a film made with it; those films are today's clips on a
      timeline that keeps going; follow (a shareholder's certificate, free) and the triple tap that fills in the next
      version; the comments, the most liked stamped 就剪它; see you. */
-  @font-face { font-family: 'Hand'; src: local('HannotateSC-W5'), local('Hannotate SC Regular'); font-weight: 400; }
-  @font-face { font-family: 'Hand'; src: local('HannotateSC-W7'), local('Hannotate SC Bold'); font-weight: 700; }
-  @font-face { font-family: 'Kai'; src: local('STKaitiSC-Bold'), local('Kaiti SC Bold'); font-weight: 700; }
-  @font-face { font-family: 'Kai'; src: local('STKaitiSC-Black'), local('Kaiti SC Black'); font-weight: 900; }
+  /* the handwriting and the certificate's kai, from fonts/ so every system draws them the same (a heavier weight is
+     the browser's bold of the one file) */
+  @font-face { font-family: 'Hand'; src: url(fonts/LXGWMarkerGothic-Regular.subset.woff2) format('woff2'); font-weight: 400; font-display: block; }
+  @font-face { font-family: 'Kai'; src: url(fonts/LXGWWenKai-Medium.subset.woff2) format('woff2'); font-weight: 500; font-display: block; }
   #bg { position: absolute; inset: 0; background: radial-gradient(75% 70% at 50% 44%, #1c1916 0%, #0e0d0c 52%, #050505 100%); }
   canvas.full { position: absolute; left: 0; top: 0; width: 1920px; height: 1080px; pointer-events: none; }
   #grain { mix-blend-mode: overlay; opacity: .09; }

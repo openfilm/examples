@@ -41,12 +41,9 @@ make the MP4, run `npx openfilm render` in the folder.
 | `assets/image/` | Stills for the cards and frames in `s4.html` and `s7.html`. |
 | `lib/` | What the pages share: `shared.css` (the fonts and colors), `ease.js`, each section's timing (`s5-voice.json`, `s6-voice.json`, `s6-plan.json`), the filmstrips and waveforms of `s4.html`. |
 | `blender/*/out/track.json` | Where the 3D marks are in each frame of `s2-cast.mp4` and `s3-mark.mp4`, so the pages can set their names on them. |
-| `fonts/` | Geist, Geist Mono, JetBrains Mono, Noto Sans SC. |
+| `fonts/` | Geist, Geist Mono, JetBrains Mono, Noto Sans SC, and LXGW Marker Gothic and LXGW WenKai for `s7.html`'s handwriting and certificate. |
 
 The pages time their moves on the narration's words (the `.vtt` files and `lib/*-voice.json`).
-
-`s7.html` writes its handwritten cards in Hannotate SC and Kaiti SC, which come with macOS; other systems draw them in
-another font.
 
 ## How it was made
 
