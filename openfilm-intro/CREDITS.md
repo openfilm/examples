@@ -23,8 +23,11 @@ All in `fonts/`. The license text and copyright notices are in [fonts/OFL.txt](f
 | [Geist Mono](https://github.com/vercel/geist-font) © 2024 The Geist Project Authors | `GeistMono.ttf` | SIL Open Font License 1.1 |
 | [JetBrains Mono](https://github.com/JetBrains/JetBrainsMono) © 2020 The JetBrains Mono Project Authors | `JetBrainsMono.ttf` | SIL Open Font License 1.1 |
 | [Noto Sans SC](https://github.com/notofonts/noto-cjk) © 2014-2021 Adobe, Reserved Font Name "Source" | `NotoSansSC.ttf` | SIL Open Font License 1.1 |
+| [LXGW Marker Gothic](https://github.com/lxgw/LxgwMarkerGothic) © 2021-2026 The LXGW Marker Gothic Project Authors | `LXGWMarkerGothic-Regular.subset.woff2` | SIL Open Font License 1.1 |
+| [LXGW WenKai](https://github.com/lxgw/LxgwWenKai) © 2021-2026 LXGW, Reserved Font Names "霞鹜" and "LXGW" (kept for a web subset, as its license allows) | `LXGWWenKai-Medium.subset.woff2` | SIL Open Font License 1.1 |
 
-`s7.html` also asks for Hannotate SC and Kaiti SC from the system (they come with macOS); they are not included.
+The two LXGW fonts are subsets (GB2312's 6,763 characters, Latin and punctuation) in WOFF2, used by `s7.html` for its
+handwriting and its certificate.
 
 ## The sources in make/
 
