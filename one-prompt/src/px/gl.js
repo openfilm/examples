@@ -181,6 +181,15 @@ export function scaleContext2D(c, s) {
 }
 
 /**
+ * The 2D context of a canvas the film draws on, drawn by the CPU (`willReadFrequently`). A canvas drawn by the GPU does
+ * not turn the same calls into the same pixels every time: its glyphs and shapes come from caches that the browser's
+ * GPU process shares between every canvas of every page and empties after a second without work, so what a call
+ * draws depends on what was drawn before it and when (edges a level or two apart from one export to the next).
+ * Drawn by the CPU, the same calls are the same pixels, and a frame is a function of t.
+ */
+export const context2D = (canvas) => canvas.getContext('2d', { willReadFrequently: true });
+
+/**
  * A 1920x1080 (logical) Canvas2D surface uploaded as an sRGB texture (decoded to linear when sampled).
  * Draw in CSS pixels with origin top-left. Call `upload()` after drawing each frame.
  * The backing canvas is SCALE times larger (`canvas.width` = w*SCALE); the context is pre-scaled
@@ -197,7 +206,7 @@ export class Layer2D {
     this.canvas = document.createElement('canvas');
     this.canvas.width = Math.round(w * scale);
     this.canvas.height = Math.round(h * scale);
-    this.ctx = scaleContext2D(this.canvas.getContext('2d'), scale);
+    this.ctx = scaleContext2D(context2D(this.canvas), scale);
     this.texture = new THREE.CanvasTexture(this.canvas);
     this.texture.colorSpace = THREE.SRGBColorSpace;
     this.texture.minFilter = THREE.LinearFilter;

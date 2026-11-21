@@ -17,7 +17,7 @@
 //             exactly SCREEN_H8, the next plate's marquee board.
 import * as THREE from 'three';
 import { Scene } from '../px/scene.js';
-import { FSPass, Layer2D, W, H, SS_TAP } from '../px/gl.js';
+import { FSPass, Layer2D, W, H, SS_TAP, context2D } from '../px/gl.js';
 import { LineBatch } from '../px/lines.js';
 import { LIN, rgba } from '../px/palette.js';
 import { F, font, layout, textPoints, fitSize } from '../px/type.js';
@@ -118,7 +118,7 @@ export default class Beam extends Scene {
     this.imgBase = IMG_H / 2 - (y0 + y1) / 2;
     const S = 2;
     this.imgCv.width = IMG_W * S; this.imgCv.height = IMG_H * S;
-    const c = this.imgCv.getContext('2d');
+    const c = context2D(this.imgCv);
     c.scale(S, S);
     c.fillStyle = '#000'; c.fillRect(0, 0, IMG_W, IMG_H);
     c.fillStyle = '#fff'; c.font = font(fam, size); c.textBaseline = 'alphabetic';

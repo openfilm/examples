@@ -2,6 +2,7 @@
 // World space: logical px at zoom 1, y DOWN, the letter board centred on (0, 0). At the hand-off frame
 // the camera shows the world at zoom 1 with the board's centre on screen (960, 500): SCREEN_H8.
 import * as THREE from 'three';
+import { context2D } from '../px/gl.js';
 import { F, font, layout, measure } from '../px/type.js';
 import { rgba } from '../px/palette.js';
 import { clamp, lerp, smoothstep, TAU } from '../px/util.js';
@@ -150,7 +151,7 @@ export function tonightGeo(width, cy, spacing) {
 export function buildAtlas(tg, lampCount) {
   const cv = document.createElement('canvas');
   cv.width = Math.round(AT.w * AT.s); cv.height = Math.round(AT.h * AT.s);
-  const c = cv.getContext('2d');
+  const c = context2D(cv);
   c.fillStyle = '#000'; c.fillRect(0, 0, cv.width, cv.height);
   c.setTransform(AT.s, 0, 0, AT.s, -AT.x0 * AT.s, -AT.y0 * AT.s);
   c.globalCompositeOperation = 'lighter';
