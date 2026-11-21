@@ -48,4 +48,8 @@ file lists what differs here. The plates in `src/plates` and the edit in `src/pl
 - A plate must be a **pure function of `f.t`**: no `Math.random`, no state carried from one frame to the next.
   - Flicker keyed to frames uses `frameIdx(t)`.
   - Particles are indexed by birth time (see `motifs.js sparkParticles`).
+  - A 2D canvas is a `Layer2D`, or gets its context from `context2D(canvas)` (`gl.js`): drawn by the CPU, the same
+    calls are the same pixels on every render. A canvas drawn by the GPU is not that exact.
+  - A font string comes from `font(family, size)` (`type.js`), which keeps the size on a grid of 1/32 px: a size that
+    follows the camera would otherwise be set with the widths of whichever nearby size was drawn first.
 - Performance: keep a frame under about 40 ms; keep at most 2–3 Canvas2D layers per plate and precompute in `init()`.
