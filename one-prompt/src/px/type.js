@@ -43,8 +43,15 @@ function nearest(list, v) {
   return best;
 }
 
-/** CSS font string for Canvas2D. */
-export const font = (family, sizePx) => `${sizePx}px "${family}"`;
+/**
+ * CSS font string for Canvas2D, its size on a grid of 1/32 px. Chromium sets text at the size floored to 0.01 px, and
+ * finds the font for it by a key in which two neighboring 0.01 px steps can be the same (the floored size times 100,
+ * cut to an integer: 9.73 gives 972, as 9.72 does). Text at 9.725 px was then set with the widths of 9.72 px or of
+ * 9.73 px, whichever a frame drawn earlier had left in the browser's cache: a size that follows a camera (a label
+ * whose px is its world size times the zoom) drew a frame that depended on the frames before it. Sizes 1/32 px apart
+ * never share a key, so a size is always set the same way.
+ */
+export const font = (family, sizePx) => `${Math.round(sizePx * 32) / 32}px "${family}"`;
 
 const bufCache = new Map();
 

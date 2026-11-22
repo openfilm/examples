@@ -2,7 +2,7 @@
 // matches the shader, the drum's rotation tables, and the two printed textures (the strip of 16 frames,
 // and the lyric band that is redrawn every frame as the words are sung).
 import * as THREE from 'three';
-import { W, H } from '../px/gl.js';
+import { W, H, context2D } from '../px/gl.js';
 import { F, font, layout, measure } from '../px/type.js';
 import { clamp, lerp, TAU } from '../px/util.js';
 import { Z } from './zoetrope-glsl.js';
@@ -67,7 +67,7 @@ export function bounce(j) {
 export function makeStripTexture() {
   const cv = document.createElement('canvas');
   cv.width = STRIP_W; cv.height = STRIP_H;
-  const c = cv.getContext('2d');
+  const c = context2D(cv);
   const fw = STRIP_W / 16;
   c.fillStyle = '#E4DCCB';
   c.fillRect(0, 0, STRIP_W, STRIP_H);
@@ -139,7 +139,7 @@ export class LyricBand {
   constructor() {
     this.canvas = document.createElement('canvas');
     this.canvas.width = LYR_W; this.canvas.height = LYR_H;
-    this.c = this.canvas.getContext('2d');
+    this.c = context2D(this.canvas);
     this.tex = new THREE.CanvasTexture(this.canvas);
     this.tex.colorSpace = THREE.NoColorSpace;
     this.tex.wrapS = THREE.RepeatWrapping;

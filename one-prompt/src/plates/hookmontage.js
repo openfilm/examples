@@ -13,7 +13,7 @@
 //        sheet of the whole film (2,160 frames) · an iris closing onto the globe's disc (H15).
 import * as THREE from 'three';
 import { Scene } from '../px/scene.js';
-import { FSPass, Layer2D, W, H, SCALE, scaleContext2D } from '../px/gl.js';
+import { FSPass, Layer2D, W, H, SCALE, scaleContext2D, context2D } from '../px/gl.js';
 import { LineBatch } from '../px/lines.js';
 import { LIN, rgba } from '../px/palette.js';
 import { F, font, layout, measure } from '../px/type.js';
@@ -551,7 +551,7 @@ export default class Plate extends Scene {
     if (!cv) {
       cv = document.createElement('canvas');
       cv.width = cv.height = Math.ceil(2 * half * SCALE);
-      const g = scaleContext2D(cv.getContext('2d'), SCALE);
+      const g = scaleContext2D(context2D(cv), SCALE);
       g.translate(half, half);
       const chars = Array.from(s);
       let tw = 0;

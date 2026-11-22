@@ -1,6 +1,7 @@
 // Helpers for plate `plot`: the 2D camera (log-zoom keys), the object's orthographic projection,
 // heat-by-age polylines, chalk written by the caret, a 7-segment LED and the lens barrel's scales.
 import * as THREE from 'three';
+import { context2D } from '../px/gl.js';
 import { LineBatch } from '../px/lines.js';
 import { LIN } from '../px/palette.js';
 import { F, font } from '../px/type.js';
@@ -199,7 +200,7 @@ export function makeSkin() {
   const Wd = 2048, Hd = 512;
   const cv = document.createElement('canvas');
   cv.width = Wd; cv.height = Hd;
-  const c = cv.getContext('2d');
+  const c = context2D(cv);
   c.fillStyle = '#fff'; c.strokeStyle = '#fff';
   const ux = (ang) => (((1 - (WITNESS + ang) / (Math.PI * 2)) % 1) + 1) % 1 * Wd;
   c.textAlign = 'center'; c.textBaseline = 'alphabetic';
